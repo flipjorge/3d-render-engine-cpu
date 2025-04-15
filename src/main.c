@@ -87,9 +87,21 @@ void renderColorBuffer() {
         NULL);
 }
 
+void drawGrid(uint8_t cellSize, uint32_t color) {
+    for (size_t y = 0; y < windowHeight; y++) {
+        for (size_t x = 0; x < windowWidth; x++) {
+            if (x % cellSize == 0 || y % cellSize == 0) {
+                colorBuffer[y * windowWidth + x] = color;
+            }
+        }
+    }
+}
+
 void render() {
     SDL_SetRenderDrawColor(renderer, 0, 0 ,0, 255);
     SDL_RenderClear(renderer);
+
+    drawGrid(40, 0xFFFFFFFF);
 
     renderColorBuffer();
     clearColorBuffer(0x000000FF);
