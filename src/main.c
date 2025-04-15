@@ -97,11 +97,24 @@ void drawGrid(uint8_t cellSize, uint32_t color) {
     }
 }
 
+void drawRectangle(int x, int y, int width, int height, uint32_t color)
+{
+    for (size_t pixelY = y; pixelY < y + height; pixelY++)
+    {
+        for (size_t pixelX = x; pixelX < x + width; pixelX++)
+        {
+            colorBuffer[pixelY * windowWidth + pixelX] = color;
+        }   
+    }
+}
+
 void render() {
     SDL_SetRenderDrawColor(renderer, 0, 0 ,0, 255);
     SDL_RenderClear(renderer);
 
     drawGrid(40, 0xFFFFFFFF);
+
+    drawRectangle(80,40,360,160, 0xFF0000FF);
 
     renderColorBuffer();
     clearColorBuffer(0x000000FF);
