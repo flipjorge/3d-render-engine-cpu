@@ -28,7 +28,8 @@ void initializeSDL()
     isRunning = true;
 }
 
-void setup() {
+void setup()
+{
     colorBuffer = malloc(sizeof(uint32_t) * windowWidth * windowHeight);
 
     colorBufferTexture = SDL_CreateTexture(
@@ -66,7 +67,8 @@ void processInput()
     }
 }
 
-void clearColorBuffer(uint32_t color) {
+void clearColorBuffer(uint32_t color)
+{
     for (size_t i = 0; i < windowWidth * windowHeight; i++)
     {
         colorBuffer[i] = color;
@@ -87,10 +89,14 @@ void renderColorBuffer() {
         NULL);
 }
 
-void drawGrid(uint8_t cellSize, uint32_t color) {
-    for (size_t y = 0; y < windowHeight; y++) {
-        for (size_t x = 0; x < windowWidth; x++) {
-            if (x % cellSize == 0 || y % cellSize == 0) {
+void drawGrid(uint8_t cellSize, uint32_t color)
+{
+    for (size_t y = 0; y < windowHeight; y++)
+    {
+        for (size_t x = 0; x < windowWidth; x++)
+        {
+            if (x % cellSize == 0 || y % cellSize == 0)
+            {
                 colorBuffer[y * windowWidth + x] = color;
             }
         }
