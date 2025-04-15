@@ -1,0 +1,23 @@
+#ifndef DISPLAY
+#define DISPLAY
+
+#include <SDL2/SDL.h>
+
+SDL_Window *window;
+SDL_Renderer *renderer;
+SDL_Texture* colorBufferTexture;
+
+const int windowWidth;
+const int windowHeight;
+
+uint32_t* colorBuffer;
+
+bool initializeSDL();
+void clearColorBuffer(uint32_t color);
+void renderColorBuffer();
+void clear();
+
+void drawGrid(uint8_t cellSize, uint32_t color);
+void drawRectangle(int x, int y, int width, int height, uint32_t color);
+
+#endif

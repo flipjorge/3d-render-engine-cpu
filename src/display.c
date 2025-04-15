@@ -1,0 +1,83 @@
+#include <stdbool.h>
+#include "display.h"
+
+SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
+SDL_Texture* colorBufferTexture = NULL;
+
+const int windowWidth = 800;
+const int windowHeight = 600;
+
+uint32_t* colorBuffer = NULL;
+
+bool initializeSDL()
+{
+    SDL_Init(SDL_INIT_EVERYTHING);
+
+    window = SDL_CreateWindow(
+        "My engine",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        windowWidth,
+        windowHeight,
+        0);
+
+    renderer = SDL_CreateRenderer(window, -1, 0);
+
+    return true;
+}
+
+void clearColorBuffer(uint32_t color)
+{
+    for (size_t i = 0; i < windowWidth * windowHeight; i++)
+    {
+        colorBuffer[i] = color;
+    }
+}
+
+void renderColorBuffer()
+{
+    SDL_UpdateTexture(
+        colorBufferTexture,
+        NULL,
+        colorBuffer,
+        sizeof(uint32_t) * windowWidth);
+
+    SDL_RenderCopy(
+        renderer,
+        colorBufferTexture,
+        NULL,
+        NULL);
+}
+
+void clear() {
+    free(colorBuffer);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+}
+
+void drawGrid(uint8_t cellSize, uint32_t color)
+{
+    for (size_t y = 0; y < windowHeight; y++)
+    {
+        for (size_t x = 0; x < windowWidth; x++)
+        {
+            if (x % cellSize == 0 || y % cellSize == 0)
+            {
+                colorBuffer[y * windowWidth + x] = color;
+            }
+        }
+    }
+}
+
+void drawRectangle(int x, int y, int width, int height, uint32_t color)
+{
+    for (size_t pixelY = y; pixelY < y + height; pixelY++)
+    {
+        for (size_t pixelX = x; pixelX < x + width; pixelX++)
+        {
+            colorBuffer[pixelY * windowWidth + pixelX] = color;
+        }   
+    }
+}
