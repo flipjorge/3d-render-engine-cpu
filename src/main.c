@@ -5,6 +5,7 @@
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 uint32_t* colorBuffer = NULL;
+SDL_Texture* colorBufferTexture = NULL;
 
 const int windowWidth = 800;
 const int windowHeight = 600;
@@ -29,6 +30,13 @@ void initializeSDL()
 
 void setup() {
     colorBuffer = malloc(sizeof(uint32_t) * windowWidth * windowHeight);
+
+    colorBufferTexture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        windowWidth,
+        windowHeight);
 }
 
 void clear() {
@@ -58,6 +66,37 @@ void processInput()
     }
 }
 
+void clearColorBuffer(uint32_t color) {
+    for (size_t i = 0; i < windowWidth * windowHeight; i++)
+    {
+        colorBuffer[i] = color;
+    }
+}
+
+void renderColorBuffer() {
+    SDL_UpdateTexture(
+        colorBufferTexture,
+        NULL,
+        colorBuffer,
+        sizeof(uint32_t) * windowWidth);
+
+    SDL_RenderCopy(
+        renderer,
+        colorBufferTexture,
+        NULL,
+        NULL);
+}
+
+void render() {
+    SDL_SetRenderDrawColor(renderer, 0, 0 ,0, 255);
+    SDL_RenderClear(renderer);
+
+    renderColorBuffer();
+    clearColorBuffer(0x000000FF);
+    
+    SDL_RenderPresent(renderer);
+}
+
 int main()
 {
     initializeSDL();
@@ -66,6 +105,7 @@ int main()
     while (isRunning)
     {
         processInput();
+        render();
     }
 
     clear();
