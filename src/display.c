@@ -57,6 +57,13 @@ void clear() {
     SDL_Quit();
 }
 
+void drawPixel(int x, int y, uint32_t color)
+{
+    if(x > windowWidth || y > windowHeight) return;
+    
+    colorBuffer[y * windowWidth + x] = color;
+}
+
 void drawGrid(uint8_t cellSize, uint32_t color)
 {
     for (size_t y = 0; y < windowHeight; y++)

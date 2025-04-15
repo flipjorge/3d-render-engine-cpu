@@ -17,6 +17,7 @@ void clearColorBuffer(uint32_t color);
 void renderColorBuffer();
 void clear();
 
+void drawPixel(int x, int y, uint32_t color);
 void drawGrid(uint8_t cellSize, uint32_t color);
 void drawRectangle(int x, int y, int width, int height, uint32_t color);
 

@@ -37,13 +37,16 @@ void processInput()
     }
 }
 
-void render() {
+void render()
+{
     SDL_SetRenderDrawColor(renderer, 0, 0 ,0, 255);
     SDL_RenderClear(renderer);
 
     drawGrid(40, 0xFFFFFFFF);
 
     drawRectangle(80,40,360,160, 0xFF0000FF);
+
+    drawPixel(705,405, 0xFF0000FF);
 
     renderColorBuffer();
     clearColorBuffer(0x000000FF);
