@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include "display.h"
+#include "vector.h"
 
 bool isRunning = false;
 
@@ -15,6 +16,9 @@ void setup()
         SDL_TEXTUREACCESS_STREAMING,
         windowWidth,
         windowHeight);
+
+    vector2 someVector2 = { 1.0, 2.2 };
+    vector3 someVector3 = { 11.0, 22.2, 33.3 };
 }
 
 void processInput()
