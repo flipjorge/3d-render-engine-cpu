@@ -17,8 +17,8 @@ void setup()
         windowWidth,
         windowHeight);
 
-    vector2 someVector2 = { 1.0, 2.2 };
-    vector3 someVector3 = { 11.0, 22.2, 33.3 };
+    vector2_t someVector2 = { 1.0, 2.2 };
+    vector3_t someVector3 = { 11.0, 22.2, 33.3 };
 }
 
 void processInput()
