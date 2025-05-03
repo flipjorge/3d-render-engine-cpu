@@ -3,8 +3,13 @@
 #include <SDL2/SDL.h>
 #include "display.h"
 #include "vector.h"
+#include "projection.h"
+#include "cube.h"
 
 bool isRunning = false;
+
+cube_t cube;
+vector2_t cubeProjectedPoints[8];
 
 void setup()
 {
@@ -17,8 +22,7 @@ void setup()
         windowWidth,
         windowHeight);
 
-    vector2_t someVector2 = { 1.0, 2.2 };
-    vector3_t someVector3 = { 11.0, 22.2, 33.3 };
+    createCube(&cube, 30, (vector3_t){ 0, 0, 0});
 }
 
 void processInput()
@@ -41,17 +45,27 @@ void processInput()
     }
 }
 
+void update()
+{
+    for (size_t i = 0; i < 8; i++)
+    {
+        cubeProjectedPoints[i] = projectOrtographic(cube.vertices[i]);
+        cubeProjectedPoints[i] = vector2Sum(cubeProjectedPoints[i], (vector2_t){60, 60});
+    }
+}
+
 void render()
 {
     SDL_SetRenderDrawColor(renderer, 0, 0 ,0, 255);
     SDL_RenderClear(renderer);
 
-    drawGrid(40, 0xFFFFFFFF);
+    drawGrid(40, 0x333333FF);
 
-    drawRectangle(80,40,360,160, 0xFF0000FF);
-
-    drawPixel(705,405, 0xFF0000FF);
-
+    for (size_t i = 0; i < 8; i++)
+    {
+        drawRectangle(cubeProjectedPoints[i].x, cubeProjectedPoints[i].y, 5, 5, 0xFF0000FF);
+    }
+    
     renderColorBuffer();
     clearColorBuffer(0x000000FF);
     
@@ -65,6 +79,7 @@ int main()
 
     while (isRunning)
     {
+        update();
         processInput();
         render();
     }
