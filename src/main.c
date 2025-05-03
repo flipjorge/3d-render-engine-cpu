@@ -79,8 +79,8 @@ int main()
 
     while (isRunning)
     {
-        update();
         processInput();
+        update();
         render();
     }
 
