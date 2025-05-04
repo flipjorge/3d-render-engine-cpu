@@ -33,9 +33,9 @@ void createCube(cube_t* cube, float size, vector3_t position)
 
     for (size_t i = 0; i < 8; i++)
     {
-        float x = cubeVertices[i].x * size + position.x;
-        float y = cubeVertices[i].y * size + position.y;
-        float z = cubeVertices[i].z * size + position.z;
+        float x = cubeVertices[i].x * size;
+        float y = cubeVertices[i].y * size;
+        float z = cubeVertices[i].z * size;
 
         cube->vertices[i] = (vector3_t){ x, y, z };
     }
@@ -43,5 +43,17 @@ void createCube(cube_t* cube, float size, vector3_t position)
     for (size_t i = 0; i < 12; i++)
     {
         cube->faces[i] = cubeFaces[i];
+    }
+    
+    cube->position = position;
+}
+
+void getCubeTransformedVertices(const cube_t* cube, vector3_t tranformedVertices[8])
+{
+    for (size_t i = 0; i < 8; i++)
+    {
+        tranformedVertices[i].x = cube->vertices[i].x + cube->position.x;
+        tranformedVertices[i].y = cube->vertices[i].y + cube->position.y;
+        tranformedVertices[i].z = cube->vertices[i].z + cube->position.z;
     }
 }

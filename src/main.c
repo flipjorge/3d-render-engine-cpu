@@ -22,7 +22,7 @@ void setup()
         windowWidth,
         windowHeight);
 
-    createCube(&cube, 30, (vector3_t){ 0, 0, 0});
+    createCube(&cube, 30, (vector3_t){ 0, 0, 0 });
 }
 
 void processInput()
@@ -47,10 +47,13 @@ void processInput()
 
 void update()
 {
+    cube.position = (vector3_t){ 60, 60, 0 };
+
     for (size_t i = 0; i < 8; i++)
     {
-        cubeProjectedPoints[i] = projectOrtographic(cube.vertices[i]);
-        cubeProjectedPoints[i] = vector2Sum(cubeProjectedPoints[i], (vector2_t){60, 60});
+        vector3_t cubeTranformedVertices[8];
+        getCubeTransformedVertices(&cube, cubeTranformedVertices);
+        cubeProjectedPoints[i] = projectOrtographic(cubeTranformedVertices[i]);
     }
 }
 
