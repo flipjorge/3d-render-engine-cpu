@@ -47,14 +47,15 @@ void processInput()
 
 void update()
 {
-    cube.position = (vector3_t){ 0, 0, 10 };
+    cube.position = (vector3_t){ 0, 0, 30 };
+    cube.rotation = vector3Sum( cube.rotation, (vector3_t){ .001, .001, .001 } );
     vector3_t cubeTranformedVertices[8];
     getCubeTransformedVertices(&cube, cubeTranformedVertices);
 
     for (size_t i = 0; i < 8; i++)
     {
         //cubeProjectedPoints[i] = projectOrtographic(cubeTranformedVertices[i]);
-        cubeProjectedPoints[i] = projectPerspective(60, cubeTranformedVertices[i]);
+        cubeProjectedPoints[i] = projectPerspective(180, cubeTranformedVertices[i]);
         cubeProjectedPoints[i] = vector2Sum(cubeProjectedPoints[i], (vector2_t){ windowWidth / 2, windowHeight / 2 });
     }
 }

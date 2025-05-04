@@ -18,4 +18,8 @@ vector2_t vector2Multiple(vector2_t a, vector2_t b);
 vector3_t vector3Sum(vector3_t a, vector3_t b);
 vector3_t vector3Multiple(vector3_t a, vector3_t b);
 
+vector3_t vector3RotateX(vector3_t vector, float angle);
+vector3_t vector3RotateY(vector3_t vector, float angle);
+vector3_t vector3RotateZ(vector3_t vector, float angle);
+
 #endif

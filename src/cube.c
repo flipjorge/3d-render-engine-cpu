@@ -52,8 +52,9 @@ void getCubeTransformedVertices(const cube_t* cube, vector3_t tranformedVertices
 {
     for (size_t i = 0; i < 8; i++)
     {
-        tranformedVertices[i].x = cube->vertices[i].x + cube->position.x;
-        tranformedVertices[i].y = cube->vertices[i].y + cube->position.y;
-        tranformedVertices[i].z = cube->vertices[i].z + cube->position.z;
+        tranformedVertices[i] = vector3RotateX(cube->vertices[i], cube->rotation.x);
+        tranformedVertices[i] = vector3RotateY(tranformedVertices[i], cube->rotation.y);
+        tranformedVertices[i] = vector3RotateZ(tranformedVertices[i], cube->rotation.z);
+        tranformedVertices[i] = vector3Sum(tranformedVertices[i], cube->position);
     }
 }
