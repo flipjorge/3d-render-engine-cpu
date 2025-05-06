@@ -5,6 +5,7 @@
 #include "vector.h"
 #include "projection.h"
 #include "cube.h"
+#include "array.h"
 
 #define TARGET_FRAME_RATE 60
 #define TARGET_FRAME_TIME (1000 / TARGET_FRAME_RATE)
@@ -12,7 +13,7 @@
 bool isRunning = false;
 
 cube_t cube;
-triangle_t trianglesToRender[12];
+triangle_t* trianglesToRender = NULL;
 
 Uint32 previousFrameTicks;
 
@@ -90,7 +91,7 @@ void update()
             triangle.points[j] = vector2Sum(triangle.points[j], (vector2_t){ windowWidth / 2, windowHeight / 2 });
         }
 
-        trianglesToRender[i] = triangle;
+        array_push(trianglesToRender, triangle);
     }
 }
 
@@ -101,7 +102,9 @@ void render()
 
     drawGrid(40, 0x333333FF);
 
-    for (size_t i = 0; i < 12; i++)
+    const numberTriangles = array_length(trianglesToRender);
+
+    for (size_t i = 0; i < numberTriangles; i++)
     {
         triangle_t triangle = trianglesToRender[i];
 
