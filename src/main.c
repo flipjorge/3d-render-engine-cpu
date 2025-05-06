@@ -12,7 +12,7 @@
 bool isRunning = false;
 
 cube_t cube;
-vector2_t cubeProjectedPoints[8];
+triangle_t trianglesToRender[12];
 
 Uint32 previousFrameTicks;
 
@@ -27,7 +27,7 @@ void setup()
         windowWidth,
         windowHeight);
 
-    createCube(&cube, 5, (vector3_t){ 0, 0, 0 });
+    createCube(&cube, 10, (vector3_t){ 0, 0, 0 });
 
     previousFrameTicks = SDL_GetTicks();
 }
@@ -71,11 +71,26 @@ void update()
     vector3_t cubeTranformedVertices[8];
     getCubeTransformedVertices(&cube, cubeTranformedVertices);
 
-    for (size_t i = 0; i < 8; i++)
+    for (size_t i = 0; i < 12; i++)
     {
-        //cubeProjectedPoints[i] = projectOrtographic(cubeTranformedVertices[i]);
-        cubeProjectedPoints[i] = projectPerspective(180, cubeTranformedVertices[i]);
-        cubeProjectedPoints[i] = vector2Sum(cubeProjectedPoints[i], (vector2_t){ windowWidth / 2, windowHeight / 2 });
+        face_t face = cube.faces[i];
+        vector3_t faceVertices[3];
+        faceVertices[0] = cubeTranformedVertices[face.a];
+        faceVertices[1] = cubeTranformedVertices[face.b];
+        faceVertices[2] = cubeTranformedVertices[face.c];
+
+        triangle_t triangle;
+
+        for (size_t j = 0; j < 3; j++)
+        {
+            vector3_t vertex = faceVertices[j];
+
+            // triangle.points[j] = projectOrtographic(vertex);
+            triangle.points[j] = projectPerspective(180, vertex);
+            triangle.points[j] = vector2Sum(triangle.points[j], (vector2_t){ windowWidth / 2, windowHeight / 2 });
+        }
+
+        trianglesToRender[i] = triangle;
     }
 }
 
@@ -86,9 +101,25 @@ void render()
 
     drawGrid(40, 0x333333FF);
 
-    for (size_t i = 0; i < 8; i++)
+    for (size_t i = 0; i < 12; i++)
     {
-        drawRectangle(cubeProjectedPoints[i].x, cubeProjectedPoints[i].y, 5, 5, 0xFF0000FF);
+        triangle_t triangle = trianglesToRender[i];
+
+        for (size_t j = 0; j < 3; j++)
+        {
+            vector2_t vertex = triangle.points[j];
+            drawRectangle(vertex.x - 2, vertex.y - 2, 4, 4, 0xFF0000FF);
+        }
+
+        drawTriangle(
+            triangle.points[0].x,
+            triangle.points[0].y,
+            triangle.points[1].x,
+            triangle.points[1].y,
+            triangle.points[2].x,
+            triangle.points[2].y,
+            0xFF0000FF
+        );
     }
     
     renderColorBuffer();

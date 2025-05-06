@@ -8,7 +8,7 @@ typedef struct {
 } face_t;
 
 typedef struct {
-    vector2_t points;
+    vector2_t points[3];
 } triangle_t;
 
 #endif
