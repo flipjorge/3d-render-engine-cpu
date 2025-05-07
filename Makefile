@@ -1,5 +1,5 @@
 CC = gcc
-SOURCE = ./src/*.c
+SOURCE = ./src/*.c ./src/array/*.c
 INCLUDE = -I/opt/homebrew/include
 LIBS = -L/opt/homebrew/lib -lSDL2
 OUTPUT_FOLDER = ./dist
