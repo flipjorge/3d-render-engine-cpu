@@ -5,7 +5,7 @@
 #include "vector.h"
 #include "projection.h"
 #include "cube.h"
-#include "array.h"
+#include "array/array.h"
 
 #define TARGET_FRAME_RATE 60
 #define TARGET_FRAME_TIME (1000 / TARGET_FRAME_RATE)
@@ -65,12 +65,14 @@ void update()
 
     float frameTimeSeconds = frameTime / 1000.0f;
     previousFrameTicks = SDL_GetTicks();
-    
+
     float rotationIncrement = 1 * frameTimeSeconds;
     cube.position = (vector3_t){ 0, 0, 30 };
     cube.rotation = vector3Sum( cube.rotation, (vector3_t){ rotationIncrement, rotationIncrement, rotationIncrement } );
     vector3_t cubeTranformedVertices[8];
     getCubeTransformedVertices(&cube, cubeTranformedVertices);
+
+    trianglesToRender = NULL;
 
     for (size_t i = 0; i < 12; i++)
     {
@@ -102,7 +104,7 @@ void render()
 
     drawGrid(40, 0x333333FF);
 
-    const numberTriangles = array_length(trianglesToRender);
+    const int numberTriangles = array_length(trianglesToRender);
 
     for (size_t i = 0; i < numberTriangles; i++)
     {
@@ -125,6 +127,8 @@ void render()
         );
     }
     
+    array_free(trianglesToRender);
+
     renderColorBuffer();
     clearColorBuffer(0x000000FF);
     
