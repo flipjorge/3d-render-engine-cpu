@@ -1,7 +1,11 @@
 #include "cube.h"
 #include <stddef.h>
+#include <stdio.h>
 
-vector3_t cubeVertices[8] = {
+#define NUMBER_VERTICES 8
+#define NUMBER_FACES 12
+
+vector3_t cubeVertices[NUMBER_VERTICES] = {
     { -1, -1, -1 },
     { -1, 1, -1 },
     { 1, 1, -1 },
@@ -12,7 +16,7 @@ vector3_t cubeVertices[8] = {
     { -1, -1, 1 },
 };
 
-face_t cubeFaces[12] = {
+face_t cubeFaces[NUMBER_FACES] = {
     { 0, 1, 2 },
     { 2, 4, 0 },
     { 3, 2, 5 },
@@ -27,34 +31,41 @@ face_t cubeFaces[12] = {
     { 3, 4, 7 },
 };
 
-void createCube(cube_t* cube, float size, vector3_t position)
+void createCube(mesh_t* mesh, float size, vector3_t position)
 {
-    vector3_t vertices[8];
+    mesh->vertices = NULL;
+    mesh->faces = NULL;
 
-    for (size_t i = 0; i < 8; i++)
+    for (size_t i = 0; i < NUMBER_VERTICES; i++)
     {
         float x = cubeVertices[i].x * size;
         float y = cubeVertices[i].y * size;
         float z = cubeVertices[i].z * size;
 
-        cube->vertices[i] = (vector3_t){ x, y, z };
+        vector3_t vertice = (vector3_t){ x, y, z };
+
+        array_push(mesh->vertices, vertice);
     }
 
-    for (size_t i = 0; i < 12; i++)
+    for (size_t i = 0; i < NUMBER_FACES; i++)
     {
-        cube->faces[i] = cubeFaces[i];
+        array_push(mesh->faces, cubeFaces[i]);
     }
     
-    cube->position = position;
+    mesh->position = position;
 }
 
-void getCubeTransformedVertices(const cube_t* cube, vector3_t tranformedVertices[8])
+void getCubeTransformedVertices(const mesh_t* mesh, vector3_t** tranformedVertices)
 {
-    for (size_t i = 0; i < 8; i++)
+    for (size_t i = 0; i < NUMBER_VERTICES; i++)
     {
-        tranformedVertices[i] = vector3RotateX(cube->vertices[i], cube->rotation.x);
-        tranformedVertices[i] = vector3RotateY(tranformedVertices[i], cube->rotation.y);
-        tranformedVertices[i] = vector3RotateZ(tranformedVertices[i], cube->rotation.z);
-        tranformedVertices[i] = vector3Sum(tranformedVertices[i], cube->position);
+        vector3_t vertice;
+
+        vertice = vector3RotateX(mesh->vertices[i], mesh->rotation.x);
+        vertice = vector3RotateY(vertice, mesh->rotation.y);
+        vertice = vector3RotateZ(vertice, mesh->rotation.z);
+        vertice = vector3Sum(vertice, mesh->position);
+
+        array_push(*tranformedVertices, vertice);
     }
 }

@@ -12,7 +12,7 @@
 
 bool isRunning = false;
 
-cube_t cube;
+mesh_t cube;
 triangle_t* trianglesToRender = NULL;
 
 Uint32 previousFrameTicks;
@@ -69,15 +69,20 @@ void update()
     float rotationIncrement = 1 * frameTimeSeconds;
     cube.position = (vector3_t){ 0, 0, 30 };
     cube.rotation = vector3Sum( cube.rotation, (vector3_t){ rotationIncrement, rotationIncrement, rotationIncrement } );
-    vector3_t cubeTranformedVertices[8];
-    getCubeTransformedVertices(&cube, cubeTranformedVertices);
+    vector3_t* cubeTranformedVertices = NULL;
+    getCubeTransformedVertices(&cube, &cubeTranformedVertices);
 
     trianglesToRender = NULL;
 
-    for (size_t i = 0; i < 12; i++)
+    const int cubeFaces = array_length(cube.faces);
+
+    for (size_t i = 0; i < cubeFaces; i++)
     {
         face_t face = cube.faces[i];
         vector3_t faceVertices[3];
+
+        int numVertices = array_length(cubeTranformedVertices);
+
         faceVertices[0] = cubeTranformedVertices[face.a];
         faceVertices[1] = cubeTranformedVertices[face.b];
         faceVertices[2] = cubeTranformedVertices[face.c];
@@ -148,6 +153,9 @@ int main()
     }
 
     clear();
+    
+    freeMesh(&cube);
+    if(trianglesToRender) array_free(trianglesToRender);
 
     return 0;
 }
