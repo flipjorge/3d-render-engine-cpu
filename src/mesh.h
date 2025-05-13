@@ -12,6 +12,7 @@ typedef struct {
     vector3_t rotation;
 } mesh_t;
 
+void getMeshTransformedVertices(const mesh_t* mesh, vector3_t** tranformedVertices);
 void freeMesh(mesh_t* mesh);
 
 #endif

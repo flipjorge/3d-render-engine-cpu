@@ -70,7 +70,7 @@ void update()
     cube.position = (vector3_t){ 0, 0, 30 };
     cube.rotation = vector3Sum( cube.rotation, (vector3_t){ rotationIncrement, rotationIncrement, rotationIncrement } );
     vector3_t* cubeTranformedVertices = NULL;
-    getCubeTransformedVertices(&cube, &cubeTranformedVertices);
+    getMeshTransformedVertices(&cube, &cubeTranformedVertices);
 
     trianglesToRender = NULL;
 
