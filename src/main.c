@@ -5,6 +5,7 @@
 #include "vector.h"
 #include "projection.h"
 #include "cube.h"
+#include "obj.h"
 #include "array/array.h"
 
 #define TARGET_FRAME_RATE 60
@@ -13,6 +14,7 @@
 bool isRunning = false;
 
 mesh_t cube;
+mesh_t piramid;
 triangle_t* trianglesToRender = NULL;
 
 Uint32 previousFrameTicks;
@@ -29,6 +31,7 @@ void setup()
         windowHeight);
 
     createCube(&cube, 10, (vector3_t){ 0, 0, 0 });
+    loadMeshFromObj(&piramid, "./assets/piramid.obj");
 
     previousFrameTicks = SDL_GetTicks();
 }
@@ -83,9 +86,38 @@ void update()
 
         int numVertices = array_length(cubeTranformedVertices);
 
-        faceVertices[0] = cubeTranformedVertices[face.a];
-        faceVertices[1] = cubeTranformedVertices[face.b];
-        faceVertices[2] = cubeTranformedVertices[face.c];
+
+        triangle_t triangle;
+
+        for (size_t j = 0; j < 3; j++)
+        {
+            vector3_t vertex = faceVertices[j];
+
+            // triangle.points[j] = projectOrtographic(vertex);
+            triangle.points[j] = projectPerspective(180, vertex);
+            triangle.points[j] = vector2Sum(triangle.points[j], (vector2_t){ windowWidth / 2, windowHeight / 2 });
+        }
+
+        array_push(trianglesToRender, triangle);
+    }
+
+    piramid.position = (vector3_t){ 0, 20, 30 };
+    piramid.rotation = vector3Sum( piramid.rotation, (vector3_t){ rotationIncrement, rotationIncrement, rotationIncrement } );
+    vector3_t* objTransformeVertices = NULL;
+    getMeshTransformedVertices(&piramid, &objTransformeVertices);
+    
+    const int piramidFaces = array_length(piramid.faces);
+
+    for (size_t i = 0; i < piramidFaces; i++)
+    {
+        face_t face = piramid.faces[i];
+        vector3_t faceVertices[3];
+
+        int numVertices = array_length(objTransformeVertices);
+
+        faceVertices[0] = objTransformeVertices[face.a - 1];
+        faceVertices[1] = objTransformeVertices[face.b - 1];
+        faceVertices[2] = objTransformeVertices[face.c - 1];
 
         triangle_t triangle;
 
