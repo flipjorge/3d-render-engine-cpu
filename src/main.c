@@ -86,6 +86,9 @@ void update()
 
         int numVertices = array_length(cubeTranformedVertices);
 
+        faceVertices[0] = cubeTranformedVertices[face.a - 1];
+        faceVertices[1] = cubeTranformedVertices[face.b - 1];
+        faceVertices[2] = cubeTranformedVertices[face.c - 1];
 
         triangle_t triangle;
 
