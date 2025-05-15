@@ -17,16 +17,22 @@ vector3_t cubeVertices[NUMBER_VERTICES] = {
 };
 
 face_t cubeFaces[NUMBER_FACES] = {
+    // front
     { 1, 2, 3 },
-    { 3, 5, 1 },
+    { 3, 4, 1 },
+    // right
     { 4, 3, 6 },
     { 6, 5, 4 },
+    // back
     { 5, 6, 7 },
     { 7, 8, 5 },
+    // left
     { 8, 7, 2 },
     { 2, 1, 8 },
+    // top
     { 2, 7, 6 },
     { 6, 3, 2 },
+    //bottom
     { 8, 1, 4 },
     { 4, 5, 8 },
 };
