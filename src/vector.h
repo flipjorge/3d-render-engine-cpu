@@ -30,4 +30,7 @@ float vector3Magnitude(vector3_t vector);
 vector3_t vector3CrossProduct(vector3_t a, vector3_t b);
 float vector3DotProduct(vector3_t a, vector3_t b);
 
+vector2_t vector2Normalized(vector2_t vector);
+vector3_t vector3Normalized(vector3_t vector);
+
 #endif

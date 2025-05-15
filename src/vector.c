@@ -89,3 +89,19 @@ float vector3DotProduct(vector3_t a, vector3_t b)
 {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
+
+vector2_t vector2Normalized(vector2_t vector)
+{
+    float magnitude = vector2Magnitude(vector);
+    if (magnitude == 0) return vector;
+
+    return (vector2_t){ vector.x / magnitude, vector.y / magnitude };
+}
+
+vector3_t vector3Normalized(vector3_t vector)
+{
+    float magnitude = vector3Magnitude(vector);
+    if (magnitude == 0) return vector;
+
+    return (vector3_t){ vector.x / magnitude, vector.y / magnitude, vector.z / magnitude };
+}
