@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
+#include "array/array.h"
 #include "display.h"
 #include "vector.h"
 #include "projection.h"
 #include "cube.h"
 #include "obj.h"
-#include "array/array.h"
+#include "face.h"
 
 #define TARGET_FRAME_RATE 60
 #define TARGET_FRAME_TIME (1000 / TARGET_FRAME_RATE)
@@ -70,6 +71,7 @@ void update()
     previousFrameTicks = SDL_GetTicks();
 
     float rotationIncrement = 1 * frameTimeSeconds;
+
     cube.position = (vector3_t){ 0, -10, 30 };
     cube.rotation = vector3Sum( cube.rotation, (vector3_t){ rotationIncrement, rotationIncrement, rotationIncrement } );
     vector3_t* cubeTranformedVertices = NULL;
@@ -100,6 +102,8 @@ void update()
             triangle.points[j] = projectPerspective(180, vertex);
             triangle.points[j] = vector2Sum(triangle.points[j], (vector2_t){ windowWidth / 2, windowHeight / 2 });
         }
+
+        if(!isFaceFacingCamera((vector3_t){ 0, 0, 0 }, faceVertices)) continue;
 
         array_push(trianglesToRender, triangle);
     }
@@ -133,6 +137,8 @@ void update()
             triangle.points[j] = projectPerspective(180, vertex);
             triangle.points[j] = vector2Sum(triangle.points[j], (vector2_t){ windowWidth / 2, windowHeight / 2 });
         }
+
+        if(!isFaceFacingCamera((vector3_t){ 0, 0, 0 }, faceVertices)) continue;
 
         array_push(trianglesToRender, triangle);
     }
