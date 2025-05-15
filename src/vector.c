@@ -53,3 +53,13 @@ vector3_t vector3RotateZ(vector3_t vector, float angle)
 
     return rotatedVector;
 }
+
+float vector2Magnitude(const vector2_t vector)
+{
+    return sqrt(vector.x * vector.x + vector.y * vector.y);
+}
+
+float vector3Magnitude(const vector3_t vector)
+{
+    return sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
+}

@@ -22,4 +22,7 @@ vector3_t vector3RotateX(vector3_t vector, float angle);
 vector3_t vector3RotateY(vector3_t vector, float angle);
 vector3_t vector3RotateZ(vector3_t vector, float angle);
 
+float vector2Magnitude(vector2_t vector);
+float vector3Magnitude(vector3_t vector);
+
 #endif
