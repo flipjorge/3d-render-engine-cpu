@@ -53,4 +53,6 @@ void createCube(mesh_t* mesh, float size, vector3_t position)
     }
     
     mesh->position = position;
+    mesh->rotation = (vector3_t){ 0, 0, 0 };
+    mesh->scale = (vector3_t){ 1, 1, 1 };
 }

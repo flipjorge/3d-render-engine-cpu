@@ -9,7 +9,8 @@ void getMeshTransformedVertices(const mesh_t* mesh, vector3_t** tranformedVertic
     {
         vector3_t vertice;
 
-        vertice = vector3RotateX(mesh->vertices[i], mesh->rotation.x);
+        vertice = vector3Multiple(mesh->vertices[i], mesh->scale);
+        vertice = vector3RotateX(vertice, mesh->rotation.x);
         vertice = vector3RotateY(vertice, mesh->rotation.y);
         vertice = vector3RotateZ(vertice, mesh->rotation.z);
         vertice = vector3Sum(vertice, mesh->position);

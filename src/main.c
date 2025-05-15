@@ -70,7 +70,7 @@ void update()
     previousFrameTicks = SDL_GetTicks();
 
     float rotationIncrement = 1 * frameTimeSeconds;
-    cube.position = (vector3_t){ 0, 0, 30 };
+    cube.position = (vector3_t){ 0, -10, 30 };
     cube.rotation = vector3Sum( cube.rotation, (vector3_t){ rotationIncrement, rotationIncrement, rotationIncrement } );
     vector3_t* cubeTranformedVertices = NULL;
     getMeshTransformedVertices(&cube, &cubeTranformedVertices);
@@ -105,7 +105,8 @@ void update()
     }
 
     piramid.position = (vector3_t){ 0, 20, 30 };
-    piramid.rotation = vector3Sum( piramid.rotation, (vector3_t){ rotationIncrement, rotationIncrement, rotationIncrement } );
+    piramid.rotation = vector3Sum( piramid.rotation, (vector3_t){ 0, rotationIncrement, 0 } );
+    piramid.scale = (vector3_t){ 10, -10, 10 };
     vector3_t* objTransformeVertices = NULL;
     getMeshTransformedVertices(&piramid, &objTransformeVertices);
     

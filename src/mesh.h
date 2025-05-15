@@ -10,6 +10,7 @@ typedef struct {
     face_t* faces;
     vector3_t position;
     vector3_t rotation;
+    vector3_t scale;
 } mesh_t;
 
 void getMeshTransformedVertices(const mesh_t* mesh, vector3_t** tranformedVertices);
