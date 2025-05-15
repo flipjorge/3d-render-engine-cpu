@@ -27,4 +27,7 @@ vector3_t vector3RotateZ(vector3_t vector, float angle);
 float vector2Magnitude(vector2_t vector);
 float vector3Magnitude(vector3_t vector);
 
+vector3_t vector3CrossProduct(vector3_t a, vector3_t b);
+float vector3DotProduct(vector3_t a, vector3_t b);
+
 #endif
