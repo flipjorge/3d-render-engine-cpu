@@ -160,8 +160,18 @@ void render()
         for (size_t j = 0; j < 3; j++)
         {
             vector2_t vertex = triangle.points[j];
-            drawRectangle(vertex.x - 2, vertex.y - 2, 4, 4, 0xFF0000FF);
+            drawRectangle(vertex.x - 2, vertex.y - 2, 4, 4, 0xFFFFFFFF);
         }
+
+        drawFilledTriangle(
+            triangle.points[0].x,
+            triangle.points[0].y,
+            triangle.points[1].x,
+            triangle.points[1].y,
+            triangle.points[2].x,
+            triangle.points[2].y,
+            0xFF0000FF
+        );
 
         drawTriangle(
             triangle.points[0].x,
@@ -170,7 +180,7 @@ void render()
             triangle.points[1].y,
             triangle.points[2].x,
             triangle.points[2].y,
-            0xFF0000FF
+            0xFFFFFF
         );
     }
     
