@@ -9,6 +9,7 @@ typedef struct {
 
 typedef struct {
     vector2_t points[3];
+    float depth;
 } triangle_t;
 
 #endif

@@ -8,6 +8,7 @@
 #include "cube.h"
 #include "obj.h"
 #include "face.h"
+#include "sort.h"
 
 #define TARGET_FRAME_RATE 60
 #define TARGET_FRAME_TIME (1000 / TARGET_FRAME_RATE)
@@ -105,6 +106,8 @@ void update()
 
         if(!isFaceFacingCamera((vector3_t){ 0, 0, 0 }, faceVertices)) continue;
 
+        triangle.depth = (faceVertices[0].z + faceVertices[1].z + faceVertices[2].z)/3;
+
         array_push(trianglesToRender, triangle);
     }
 
@@ -140,8 +143,12 @@ void update()
 
         if(!isFaceFacingCamera((vector3_t){ 0, 0, 0 }, faceVertices)) continue;
 
+        triangle.depth = (float)(faceVertices[0].z + faceVertices[1].z + faceVertices[2].z)/(float)3;
+
         array_push(trianglesToRender, triangle);
     }
+    
+    sortTrianglesByDepth(trianglesToRender);
 }
 
 void render()
