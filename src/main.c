@@ -15,9 +15,11 @@
 
 bool isRunning = false;
 
+mesh_t** meshes = NULL;
+triangle_t* trianglesToRender = NULL;
+
 mesh_t cube;
 mesh_t piramid;
-triangle_t* trianglesToRender = NULL;
 
 Uint32 previousFrameTicks;
 
@@ -39,6 +41,9 @@ void setup()
 
     createCube(&cube, 10, (vector3_t){ 0, 0, 0 });
     loadMeshFromObj(&piramid, "./assets/piramid.obj");
+
+    array_push(meshes, &cube);
+    array_push(meshes, &piramid);
 
     previousFrameTicks = SDL_GetTicks();
 
@@ -101,77 +106,51 @@ void update()
 
     cube.position = (vector3_t){ 0, -10, 30 };
     cube.rotation = vector3Sum( cube.rotation, (vector3_t){ rotationIncrement, rotationIncrement, rotationIncrement } );
-    vector3_t* cubeTranformedVertices = NULL;
-    getMeshTransformedVertices(&cube, &cubeTranformedVertices);
-
-    trianglesToRender = NULL;
-
-    const int cubeFaces = array_length(cube.faces);
-
-    for (size_t i = 0; i < cubeFaces; i++)
-    {
-        face_t face = cube.faces[i];
-        vector3_t faceVertices[3];
-
-        int numVertices = array_length(cubeTranformedVertices);
-
-        faceVertices[0] = cubeTranformedVertices[face.a - 1];
-        faceVertices[1] = cubeTranformedVertices[face.b - 1];
-        faceVertices[2] = cubeTranformedVertices[face.c - 1];
-
-        triangle_t triangle;
-
-        for (size_t j = 0; j < 3; j++)
-        {
-            vector3_t vertex = faceVertices[j];
-
-            // triangle.points[j] = projectOrtographic(vertex);
-            triangle.points[j] = projectPerspective(180, vertex);
-            triangle.points[j] = vector2Sum(triangle.points[j], (vector2_t){ windowWidth / 2, windowHeight / 2 });
-        }
-
-        if(backCulling && !isFaceFacingCamera((vector3_t){ 0, 0, 0 }, faceVertices)) continue;
-
-        triangle.depth = (faceVertices[0].z + faceVertices[1].z + faceVertices[2].z)/3;
-
-        array_push(trianglesToRender, triangle);
-    }
 
     piramid.position = (vector3_t){ 0, 20, 30 };
     piramid.rotation = vector3Sum( piramid.rotation, (vector3_t){ 0, rotationIncrement, 0 } );
     piramid.scale = (vector3_t){ 10, -10, 10 };
-    vector3_t* objTransformeVertices = NULL;
-    getMeshTransformedVertices(&piramid, &objTransformeVertices);
-    
-    const int piramidFaces = array_length(piramid.faces);
 
-    for (size_t i = 0; i < piramidFaces; i++)
+    const int numMeshes = array_length(meshes);
+    trianglesToRender = NULL;
+
+    for (size_t i = 0; i < numMeshes; i++)
     {
-        face_t face = piramid.faces[i];
-        vector3_t faceVertices[3];
+        mesh_t* mesh = meshes[i];
 
-        int numVertices = array_length(objTransformeVertices);
+        vector3_t* transformedVertices = NULL;
+        getMeshTransformedVertices(mesh, &transformedVertices);
 
-        faceVertices[0] = objTransformeVertices[face.a - 1];
-        faceVertices[1] = objTransformeVertices[face.b - 1];
-        faceVertices[2] = objTransformeVertices[face.c - 1];
+        const int numFaces = array_length(mesh->faces);
 
-        triangle_t triangle;
-
-        for (size_t j = 0; j < 3; j++)
+        for (size_t j = 0; j < numFaces; j++)
         {
-            vector3_t vertex = faceVertices[j];
-
-            // triangle.points[j] = projectOrtographic(vertex);
-            triangle.points[j] = projectPerspective(180, vertex);
-            triangle.points[j] = vector2Sum(triangle.points[j], (vector2_t){ windowWidth / 2, windowHeight / 2 });
+            face_t face = mesh->faces[j];
+            vector3_t faceVertices[3];
+            
+            int numVertices = array_length(transformedVertices);
+            
+            faceVertices[0] = transformedVertices[face.a - 1];
+            faceVertices[1] = transformedVertices[face.b - 1];
+            faceVertices[2] = transformedVertices[face.c - 1];
+            
+            triangle_t triangle;
+            
+            for (size_t l = 0; l < 3; l++)
+            {
+                vector3_t vertex = faceVertices[l];
+                
+                // triangle.points[l] = projectOrtographic(vertex);
+                triangle.points[l] = projectPerspective(180, vertex);
+                triangle.points[l] = vector2Sum(triangle.points[l], (vector2_t){ windowWidth / 2, windowHeight / 2 });
+            }
+            
+            if(backCulling && !isFaceFacingCamera((vector3_t){ 0, 0, 0 }, faceVertices)) continue;
+            
+            triangle.depth = (faceVertices[0].z + faceVertices[1].z + faceVertices[2].z)/3;
+            
+            array_push(trianglesToRender, triangle);
         }
-
-        if(backCulling && !isFaceFacingCamera((vector3_t){ 0, 0, 0 }, faceVertices)) continue;
-
-        triangle.depth = (float)(faceVertices[0].z + faceVertices[1].z + faceVertices[2].z)/(float)3;
-
-        array_push(trianglesToRender, triangle);
     }
     
     sortTrianglesByDepth(trianglesToRender);
