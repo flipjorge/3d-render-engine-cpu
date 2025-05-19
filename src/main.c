@@ -21,6 +21,11 @@ triangle_t* trianglesToRender = NULL;
 
 Uint32 previousFrameTicks;
 
+bool renderVertices;
+bool renderLines;
+bool renderFaces;
+bool backCulling;
+
 void setup()
 {
     colorBuffer = malloc(sizeof(uint32_t) * windowWidth * windowHeight);
@@ -36,6 +41,11 @@ void setup()
     loadMeshFromObj(&piramid, "./assets/piramid.obj");
 
     previousFrameTicks = SDL_GetTicks();
+
+    renderVertices = true;
+    renderLines = true;
+    renderFaces = true;
+    backCulling = true;
 }
 
 void processInput()
@@ -50,6 +60,22 @@ void processInput()
         break;
 
     case SDL_KEYDOWN:
+        if(event.key.keysym.sym == SDLK_v)
+        {
+            renderVertices = !renderVertices;
+        }
+        if(event.key.keysym.sym == SDLK_l)
+        {
+            renderLines = !renderLines;
+        }
+        if(event.key.keysym.sym == SDLK_f)
+        {
+            renderFaces = !renderFaces;
+        }
+        if(event.key.keysym.sym == SDLK_b)
+        {
+            backCulling = !backCulling;
+        }
         if (event.key.keysym.sym == SDLK_ESCAPE)
         {
             isRunning = false;
@@ -104,7 +130,7 @@ void update()
             triangle.points[j] = vector2Sum(triangle.points[j], (vector2_t){ windowWidth / 2, windowHeight / 2 });
         }
 
-        if(!isFaceFacingCamera((vector3_t){ 0, 0, 0 }, faceVertices)) continue;
+        if(backCulling && !isFaceFacingCamera((vector3_t){ 0, 0, 0 }, faceVertices)) continue;
 
         triangle.depth = (faceVertices[0].z + faceVertices[1].z + faceVertices[2].z)/3;
 
@@ -141,7 +167,7 @@ void update()
             triangle.points[j] = vector2Sum(triangle.points[j], (vector2_t){ windowWidth / 2, windowHeight / 2 });
         }
 
-        if(!isFaceFacingCamera((vector3_t){ 0, 0, 0 }, faceVertices)) continue;
+        if(backCulling && !isFaceFacingCamera((vector3_t){ 0, 0, 0 }, faceVertices)) continue;
 
         triangle.depth = (float)(faceVertices[0].z + faceVertices[1].z + faceVertices[2].z)/(float)3;
 
@@ -164,31 +190,40 @@ void render()
     {
         triangle_t triangle = trianglesToRender[i];
 
-        for (size_t j = 0; j < 3; j++)
+        if(renderVertices)
         {
-            vector2_t vertex = triangle.points[j];
-            drawRectangle(vertex.x - 2, vertex.y - 2, 4, 4, 0xFFFFFFFF);
+            for (size_t j = 0; j < 3; j++)
+            {
+                vector2_t vertex = triangle.points[j];
+                drawRectangle(vertex.x - 2, vertex.y - 2, 4, 4, 0xFFFFFFFF);
+            }
         }
 
-        drawFilledTriangle(
-            triangle.points[0].x,
-            triangle.points[0].y,
-            triangle.points[1].x,
-            triangle.points[1].y,
-            triangle.points[2].x,
-            triangle.points[2].y,
-            0xFF0000FF
-        );
+        if(renderFaces)
+        {
+            drawFilledTriangle(
+                triangle.points[0].x,
+                triangle.points[0].y,
+                triangle.points[1].x,
+                triangle.points[1].y,
+                triangle.points[2].x,
+                triangle.points[2].y,
+                0xFF0000FF
+            );
+        }
 
-        drawTriangle(
-            triangle.points[0].x,
-            triangle.points[0].y,
-            triangle.points[1].x,
-            triangle.points[1].y,
-            triangle.points[2].x,
-            triangle.points[2].y,
-            0xFFFFFF
-        );
+        if(renderLines)
+        {
+            drawTriangle(
+                triangle.points[0].x,
+                triangle.points[0].y,
+                triangle.points[1].x,
+                triangle.points[1].y,
+                triangle.points[2].x,
+                triangle.points[2].y,
+                0xFFFFFF
+            );
+        }
     }
     
     array_free(trianglesToRender);
