@@ -228,6 +228,8 @@ int main()
     clear();
     
     freeMesh(&cube);
+    freeMesh(&piramid);
+    if(meshes) array_free(meshes);
     if(trianglesToRender) array_free(trianglesToRender);
 
     return 0;
