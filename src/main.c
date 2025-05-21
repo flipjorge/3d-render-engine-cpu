@@ -9,6 +9,7 @@
 #include "obj.h"
 #include "face.h"
 #include "sort.h"
+#include "matrix.h"
 
 #define TARGET_FRAME_RATE 60
 #define TARGET_FRAME_TIME (1000 / TARGET_FRAME_RATE)
@@ -20,6 +21,8 @@ triangle_t* trianglesToRender = NULL;
 
 mesh_t cube;
 mesh_t piramid;
+
+matrix4_t projectionMatrix;
 
 Uint32 previousFrameTicks;
 
@@ -39,12 +42,14 @@ void setup()
         windowWidth,
         windowHeight);
 
-    createCube(&cube, 10, (vector3_t){ 0, 0, 0 });
-    loadMeshFromObj(&piramid, "./assets/piramid.obj");
+    createCube(&cube, 1, (vector3_t){ 0, 0, 0 });
+    loadMeshFromObj(&piramid, "./assets/piramid.obj"); 
 
     array_push(meshes, &cube);
     array_push(meshes, &piramid);
 
+    projectionMatrix = matrix4MakePerspective( M_PI / 3, (float)windowHeight / (float)windowWidth, 0.01, 100 );
+    
     previousFrameTicks = SDL_GetTicks();
 
     renderVertices = true;
@@ -104,48 +109,65 @@ void update()
 
     float rotationIncrement = 1 * frameTimeSeconds;
 
-    cube.position = (vector3_t){ 0, -10, 30 };
+    cube.position = (vector3_t){ 0, 0, 30 };
     cube.rotation = vector3Sum( cube.rotation, (vector3_t){ rotationIncrement, rotationIncrement, rotationIncrement } );
+    cube.scale = (vector3_t){ 2, 2, 2};
 
-    piramid.position = (vector3_t){ 0, 20, 30 };
+    piramid.position = (vector3_t){ 0, 10, 30 };
     piramid.rotation = vector3Sum( piramid.rotation, (vector3_t){ 0, rotationIncrement, 0 } );
-    piramid.scale = (vector3_t){ 10, -10, 10 };
+    piramid.scale = (vector3_t){ 2, -2, 2 };
 
     const int numMeshes = array_length(meshes);
     trianglesToRender = NULL;
 
-    for (size_t i = 0; i < numMeshes; i++)
+    for (size_t m = 0; m < numMeshes; m++)
     {
-        mesh_t* mesh = meshes[i];
-
-        vector3_t* transformedVertices = NULL;
-        getMeshTransformedVertices(mesh, &transformedVertices);
+        mesh_t* mesh = meshes[m];
+        matrix4_t transformMatrix = getMeshTransformMatrix(mesh);
 
         const int numFaces = array_length(mesh->faces);
 
-        for (size_t j = 0; j < numFaces; j++)
+        for (size_t f = 0; f < numFaces; f++)
         {
-            face_t face = mesh->faces[j];
+            face_t face = mesh->faces[f];
             vector3_t faceVertices[3];
             
-            int numVertices = array_length(transformedVertices);
+            faceVertices[0] = mesh->vertices[face.a - 1];
+            faceVertices[1] = mesh->vertices[face.b - 1];
+            faceVertices[2] = mesh->vertices[face.c - 1];
             
-            faceVertices[0] = transformedVertices[face.a - 1];
-            faceVertices[1] = transformedVertices[face.b - 1];
-            faceVertices[2] = transformedVertices[face.c - 1];
-            
-            triangle_t triangle;
-            
-            for (size_t l = 0; l < 3; l++)
+            vector4_t transformedVertices[3];
+
+            for (size_t v = 0; v < 3; v++)
             {
-                vector3_t vertex = faceVertices[l];
-                
-                // triangle.points[l] = projectOrtographic(vertex);
-                triangle.points[l] = projectPerspective(180, vertex);
-                triangle.points[l] = vector2Sum(triangle.points[l], (vector2_t){ windowWidth / 2, windowHeight / 2 });
+                vector4_t transformedVertice = vector3to4(faceVertices[v]);
+                transformedVertice = matrix4MultiplyVector4(&transformMatrix, &transformedVertice);
+                transformedVertices[v] = transformedVertice;
             }
-            
-            if(backCulling && !isFaceFacingCamera((vector3_t){ 0, 0, 0 }, faceVertices)) continue;
+
+            triangle_t triangle;
+
+            for (size_t v = 0; v < 3; v++)
+            {
+                vector4_t projectedVertex = matrix4MultiplyVector4Project(&projectionMatrix, &transformedVertices[v]);
+                
+                projectedVertex.x *= windowWidth / 2.0;
+                projectedVertex.y *= windowHeight / 2.0;
+                
+                projectedVertex.x += windowWidth / 2.0;
+                projectedVertex.y += windowHeight / 2.0;
+
+                triangle.points[v].x = projectedVertex.x;
+                triangle.points[v].y = projectedVertex.y;
+            }
+
+            vector3_t verticesForBackCulling[3] = {
+                vector4to3(transformedVertices[0]),
+                vector4to3(transformedVertices[1]),
+                vector4to3(transformedVertices[2])
+            };
+
+            if(backCulling && !isFaceFacingCamera((vector3_t){ 0, 0, 0 }, verticesForBackCulling)) continue;
             
             triangle.depth = (faceVertices[0].z + faceVertices[1].z + faceVertices[2].z)/3;
             

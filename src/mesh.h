@@ -1,9 +1,10 @@
 #ifndef MESH
 #define MESH
 
+#include "array/array.h"
 #include "vector.h"
 #include "triangle.h"
-#include "array/array.h"
+#include "matrix.h"
 
 typedef struct {
     vector3_t* vertices;
@@ -13,7 +14,7 @@ typedef struct {
     vector3_t scale;
 } mesh_t;
 
-void getMeshTransformedVertices(const mesh_t* mesh, vector3_t** tranformedVertices);
+matrix4_t getMeshTransformMatrix(const mesh_t* mesh);
 void freeMesh(mesh_t* mesh);
 
 #endif
