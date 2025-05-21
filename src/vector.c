@@ -105,3 +105,13 @@ vector3_t vector3Normalized(vector3_t vector)
 
     return (vector3_t){ vector.x / magnitude, vector.y / magnitude, vector.z / magnitude };
 }
+
+vector4_t vector3to4(vector3_t vector)
+{
+    return (vector4_t){ vector.x, vector.y, vector.z, 1 };
+}
+
+vector3_t vector4to3(vector4_t vector)
+{
+    return (vector3_t){ vector.x, vector.y, vector.z };
+}

@@ -12,6 +12,13 @@ typedef struct {
     float z;
 } vector3_t;
 
+typedef struct {
+    float x;
+    float y;
+    float z;
+    float w;
+} vector4_t;
+
 vector2_t vector2Sum(vector2_t a, vector2_t b);
 vector2_t vector2Sub(vector2_t a, vector2_t b);
 vector2_t vector2Multiple(vector2_t a, vector2_t b);
@@ -32,5 +39,8 @@ float vector3DotProduct(vector3_t a, vector3_t b);
 
 vector2_t vector2Normalized(vector2_t vector);
 vector3_t vector3Normalized(vector3_t vector);
+
+vector4_t vector3to4(vector3_t vector);
+vector3_t vector4to3(vector4_t vector);
 
 #endif
