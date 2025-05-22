@@ -115,7 +115,7 @@ void update()
 
     piramid.position = (vector3_t){ 0, 10, 30 };
     piramid.rotation = vector3Sum( piramid.rotation, (vector3_t){ 0, rotationIncrement, 0 } );
-    piramid.scale = (vector3_t){ 2, -2, 2 };
+    piramid.scale = (vector3_t){ 2, 2, 2 };
 
     const int numMeshes = array_length(meshes);
     trianglesToRender = NULL;
@@ -153,6 +153,8 @@ void update()
                 
                 projectedVertex.x *= windowWidth / 2.0;
                 projectedVertex.y *= windowHeight / 2.0;
+
+                projectedVertex.y *= -1;
                 
                 projectedVertex.x += windowWidth / 2.0;
                 projectedVertex.y += windowHeight / 2.0;
