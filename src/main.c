@@ -10,6 +10,7 @@
 #include "face.h"
 #include "sort.h"
 #include "matrix.h"
+#include "light.h"
 
 #define TARGET_FRAME_RATE 60
 #define TARGET_FRAME_TIME (1000 / TARGET_FRAME_RATE)
@@ -30,6 +31,8 @@ bool renderVertices;
 bool renderLines;
 bool renderFaces;
 bool backCulling;
+
+light_t light;
 
 void setup()
 {
@@ -56,6 +59,10 @@ void setup()
     renderLines = true;
     renderFaces = true;
     backCulling = true;
+
+    light = (light_t){
+        (vector3_t){ 0, 0, 1 }
+    };
 }
 
 void processInput()
@@ -173,6 +180,9 @@ void update()
             
             triangle.depth = (faceVertices[0].z + faceVertices[1].z + faceVertices[2].z)/3;
             
+            const float intensityFactor = lightIntensityFactor(light.direction, verticesForBackCulling);
+            triangle.color = lightApplyIntensity(0xFFFFFFFF, intensityFactor);
+
             array_push(trianglesToRender, triangle);
         }
     }
@@ -198,7 +208,7 @@ void render()
             for (size_t j = 0; j < 3; j++)
             {
                 vector2_t vertex = triangle.points[j];
-                drawRectangle(vertex.x - 2, vertex.y - 2, 4, 4, 0xFFFFFFFF);
+                drawRectangle(vertex.x - 2, vertex.y - 2, 4, 4, 0xFF0000FF);
             }
         }
 
@@ -211,7 +221,7 @@ void render()
                 triangle.points[1].y,
                 triangle.points[2].x,
                 triangle.points[2].y,
-                0xFF0000FF
+                triangle.color
             );
         }
 
@@ -224,7 +234,7 @@ void render()
                 triangle.points[1].y,
                 triangle.points[2].x,
                 triangle.points[2].y,
-                0xFFFFFF
+                0x0000000
             );
         }
     }
