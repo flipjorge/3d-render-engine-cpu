@@ -30,6 +30,7 @@ Uint32 previousFrameTicks;
 bool renderVertices;
 bool renderLines;
 bool renderFaces;
+bool renderTextures;
 bool backCulling;
 
 light_t light;
@@ -58,6 +59,7 @@ void setup()
     renderVertices = true;
     renderLines = true;
     renderFaces = true;
+    renderTextures = true;
     backCulling = true;
 
     light = (light_t){
@@ -88,6 +90,10 @@ void processInput()
         if(event.key.keysym.sym == SDLK_f)
         {
             renderFaces = !renderFaces;
+        }
+        if(event.key.keysym.sym == SDLK_t)
+        {
+            renderTextures = !renderTextures;
         }
         if(event.key.keysym.sym == SDLK_b)
         {
@@ -222,6 +228,24 @@ void render()
                 triangle.points[2].x,
                 triangle.points[2].y,
                 triangle.color
+            );
+        }
+
+        if(renderTextures)
+        {
+            drawTexturedTriangle(
+                triangle.points[0].x,
+                triangle.points[0].y,
+                triangle.textureCoordinates[0].u,
+                triangle.textureCoordinates[0].v,
+                triangle.points[1].x,
+                triangle.points[1].y,
+                triangle.textureCoordinates[1].u,
+                triangle.textureCoordinates[1].v,
+                triangle.points[2].x,
+                triangle.points[2].y,
+                triangle.textureCoordinates[2].u,
+                triangle.textureCoordinates[2].v
             );
         }
 
