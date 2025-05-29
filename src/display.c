@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include "display.h"
+#include "vector.h"
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
@@ -124,6 +125,13 @@ void intSwap(int* a, int* b)
     *b = temp;
 }
 
+void floatSwap(float* a, float* b)
+{
+    float temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
 void fillFlatBottom(int x0, int y0, int x1, int y1, int x2, int y2, const uint32_t color)
 {
     float slope1 = (float)(x1 - x0) / (float)(y1 - y0);
@@ -189,11 +197,119 @@ void drawFilledTriangle(int x0, int y0, int x1, int y1, int x2, int y2, const ui
     }
 }
 
+vector3_t barycentricWeights(vector2_t a, vector2_t b, vector2_t c, vector2_t p) {
+    
+    vector2_t ac = vector2Sub(c, a);
+    vector2_t ab = vector2Sub(b, a);
+    vector2_t ap = vector2Sub(p, a);
+    vector2_t pc = vector2Sub(c, p);
+    vector2_t pb = vector2Sub(b, p);
+
+    float areaParallelogramABC = (ac.x * ab.y - ac.y * ab.x);
+
+    float alpha = (pc.x * pb.y - pc.y * pb.x) / areaParallelogramABC;
+    float beta = (ac.x * ap.y - ac.y * ap.x) / areaParallelogramABC;
+    float gamma = 1 - alpha - beta;
+
+    vector3_t weights = { alpha, beta, gamma };
+    return weights;
+}
+
+void drawTexel(
+    int x, int y, uint32_t* texture,
+    vector2_t pointA, vector2_t pointB, vector2_t pointC,
+    float u0, float v0, float u1, float v1, float u2, float v2
+) {
+    vector2_t pointP = { x, y };
+    vector3_t weights = barycentricWeights(pointA, pointB, pointC, pointP);
+
+    float alpha = weights.x;
+    float beta = weights.y;
+    float gamma = weights.z;
+
+    float interpolatedU = (u0) * alpha + (u1) * beta + (u2) * gamma;
+    float interpolatedV = (v0) * alpha + (v1) * beta + (v2) * gamma;
+
+    int textureX = abs((int)(interpolatedU * 64));
+    int textureY = abs((int)(interpolatedV * 64));
+
+    drawPixel(x, y, texture[(64 * textureY) + textureX]);
+}
+
 void drawTexturedTriangle(
     int x0, int y0, float u0, float v0,
     int x1, int y1, float u1, float v1,
-    int x2, int y2, float u2, float v2
+    int x2, int y2, float u2, float v2,
+    uint32_t* texture
 )
 {
-    //
+    if(y0 > y1)
+    {
+        intSwap(&x0, &x1);
+        intSwap(&y0, &y1);
+        floatSwap(&u0, &u1);
+        floatSwap(&v0, &v1);
+    }
+
+    if(y1 > y2)
+    {
+        intSwap(&x1, &x2);
+        intSwap(&y1, &y2);
+        floatSwap(&u1, &u2);
+        floatSwap(&v1, &v2);
+    }
+
+    if(y0 > y1)
+    {
+        intSwap(&x0, &x1);
+        intSwap(&y0, &y1);
+        floatSwap(&u0, &u1);
+        floatSwap(&v0, &v1);
+    }
+
+    vector2_t pointA = { x0, y0 };
+    vector2_t pointB = { x1, y1 };
+    vector2_t pointC = { x2, y2 };
+
+    float invertedSlopeLeft = 0;
+    float invertedSlopeRight = 0;
+
+    if (y1 - y0 != 0) invertedSlopeLeft = (float)(x1 - x0) / abs(y1 - y0);
+    if (y2 - y0 != 0) invertedSlopeRight = (float)(x2 - x0) / abs(y2 - y0);
+
+    if (y1 - y0 != 0) {
+        for (int y = y0; y <= y1; y++) {
+            int xStart = x1 + (y - y1) * invertedSlopeLeft;
+            int xEnd = x0 + (y - y0) * invertedSlopeRight;
+
+            if (xEnd < xStart) {
+                intSwap(&xStart, &xEnd);
+            }
+
+            for (int x = xStart; x < xEnd; x++) {
+                drawTexel(x, y, texture, pointA, pointB, pointC, u0, v0, u1, v1, u2, v2);
+            }
+        }
+    }
+
+    invertedSlopeLeft = 0;
+    invertedSlopeRight = 0;
+
+    if (y2 - y1 != 0) invertedSlopeLeft = (float)(x2 - x1) / abs(y2 - y1);
+    if (y2 - y0 != 0) invertedSlopeRight = (float)(x2 - x0) / abs(y2 - y0);
+
+    if (y2 - y1 != 0) {
+        for (int y = y1; y <= y2; y++) {
+            int xStart = x1 + (y - y1) * invertedSlopeLeft;
+            int xEnd = x0 + (y - y0) * invertedSlopeRight;
+
+            if (xEnd < xStart) {
+                intSwap(&xStart, &xEnd);
+            }
+
+            for (int x = xStart; x < xEnd; x++) {
+                drawTexel(x, y, texture, pointA, pointB, pointC, u0, v0, u1, v1, u2, v2);
+            }
+        }
+    }
 }
