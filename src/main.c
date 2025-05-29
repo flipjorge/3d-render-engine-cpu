@@ -11,6 +11,7 @@
 #include "sort.h"
 #include "matrix.h"
 #include "light.h"
+#include "texture.h"
 
 #define TARGET_FRAME_RATE 60
 #define TARGET_FRAME_TIME (1000 / TARGET_FRAME_RATE)
@@ -35,6 +36,8 @@ bool backCulling;
 
 light_t light;
 
+uint32_t* texture = NULL;
+
 void setup()
 {
     colorBuffer = malloc(sizeof(uint32_t) * windowWidth * windowHeight);
@@ -46,7 +49,7 @@ void setup()
         windowWidth,
         windowHeight);
 
-    createCube(&cube, 1, (vector3_t){ 0, 0, 0 });
+    createCube(&cube, 2, (vector3_t){ 0, 0, 0 });
     loadMeshFromObj(&piramid, "./assets/piramid.obj"); 
 
     array_push(meshes, &cube);
@@ -56,15 +59,18 @@ void setup()
     
     previousFrameTicks = SDL_GetTicks();
 
-    renderVertices = true;
-    renderLines = true;
-    renderFaces = true;
+    renderVertices = false;
+    renderLines = false;
+    renderFaces = false;
     renderTextures = true;
     backCulling = true;
 
     light = (light_t){
         (vector3_t){ 0, 0, 1 }
     };
+
+    int numberPixels = TEXTURE_WIDTH * TEXTURE_HEIGHT;
+    texture = convertARGBtoRGBATexture((const uint32_t*)sampleTexture, numberPixels);
 }
 
 void processInput()
@@ -189,6 +195,10 @@ void update()
             const float intensityFactor = lightIntensityFactor(light.direction, verticesForBackCulling);
             triangle.color = lightApplyIntensity(0xFFFFFFFF, intensityFactor);
 
+            triangle.textureCoordinates[0] = face.aUV;
+            triangle.textureCoordinates[1] = face.bUV;
+            triangle.textureCoordinates[2] = face.cUV;
+
             array_push(trianglesToRender, triangle);
         }
     }
@@ -245,7 +255,8 @@ void render()
                 triangle.points[2].x,
                 triangle.points[2].y,
                 triangle.textureCoordinates[2].u,
-                triangle.textureCoordinates[2].v
+                triangle.textureCoordinates[2].v,
+                texture
             );
         }
 
