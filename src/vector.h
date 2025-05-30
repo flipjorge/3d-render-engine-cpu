@@ -42,5 +42,6 @@ vector3_t vector3Normalized(vector3_t vector);
 
 vector4_t vector3to4(vector3_t vector);
 vector3_t vector4to3(vector4_t vector);
+vector2_t vector4to2(vector4_t vector);
 
 #endif

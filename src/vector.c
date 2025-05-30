@@ -115,3 +115,8 @@ vector3_t vector4to3(vector4_t vector)
 {
     return (vector3_t){ vector.x, vector.y, vector.z };
 }
+
+vector2_t vector4to2(vector4_t vector)
+{
+    return (vector2_t){ vector.x, vector.y };
+}
