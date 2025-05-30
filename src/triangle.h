@@ -11,7 +11,7 @@ typedef struct {
 } face_t;
 
 typedef struct {
-    vector2_t points[3];
+    vector4_t points[3];
     texture_t textureCoordinates[3];
     float depth;
     uint32_t color;

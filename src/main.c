@@ -180,6 +180,8 @@ void update()
 
                 triangle.points[v].x = projectedVertex.x;
                 triangle.points[v].y = projectedVertex.y;
+                triangle.points[v].z = projectedVertex.z;
+                triangle.points[v].w = projectedVertex.w;
             }
 
             vector3_t verticesForBackCulling[3] = {
@@ -223,7 +225,7 @@ void render()
         {
             for (size_t j = 0; j < 3; j++)
             {
-                vector2_t vertex = triangle.points[j];
+                vector4_t vertex = triangle.points[j];
                 drawRectangle(vertex.x - 2, vertex.y - 2, 4, 4, 0xFF0000FF);
             }
         }
@@ -246,14 +248,20 @@ void render()
             drawTexturedTriangle(
                 triangle.points[0].x,
                 triangle.points[0].y,
+                triangle.points[0].z,
+                triangle.points[0].w,
                 triangle.textureCoordinates[0].u,
                 triangle.textureCoordinates[0].v,
                 triangle.points[1].x,
                 triangle.points[1].y,
+                triangle.points[1].z,
+                triangle.points[1].w,
                 triangle.textureCoordinates[1].u,
                 triangle.textureCoordinates[1].v,
                 triangle.points[2].x,
                 triangle.points[2].y,
+                triangle.points[2].z,
+                triangle.points[2].w,
                 triangle.textureCoordinates[2].u,
                 triangle.textureCoordinates[2].v,
                 texture

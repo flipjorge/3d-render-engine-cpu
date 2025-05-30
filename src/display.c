@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include "display.h"
 #include "vector.h"
+#include "texture.h"
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
@@ -217,18 +218,26 @@ vector3_t barycentricWeights(vector2_t a, vector2_t b, vector2_t c, vector2_t p)
 
 void drawTexel(
     int x, int y, uint32_t* texture,
-    vector2_t pointA, vector2_t pointB, vector2_t pointC,
+    vector4_t pointA, vector4_t pointB, vector4_t pointC,
     float u0, float v0, float u1, float v1, float u2, float v2
 ) {
-    vector2_t pointP = { x, y };
-    vector3_t weights = barycentricWeights(pointA, pointB, pointC, pointP);
+    vector2_t p = { x, y };
+    vector2_t a = vector4to2(pointA);
+    vector2_t b = vector4to2(pointB);
+    vector2_t c = vector4to2(pointC);
+
+    vector3_t weights = barycentricWeights(a, b, c, p);
 
     float alpha = weights.x;
     float beta = weights.y;
     float gamma = weights.z;
 
-    float interpolatedU = (u0) * alpha + (u1) * beta + (u2) * gamma;
-    float interpolatedV = (v0) * alpha + (v1) * beta + (v2) * gamma;
+    float interpolatedU = (u0 / pointA.w) * alpha + (u1 / pointB.w) * beta + (u2 / pointC.w) * gamma;
+    float interpolatedV = (v0 / pointA.w) * alpha + (v1 / pointB.w) * beta + (v2 / pointC.w) * gamma;
+    float interpolatedW = (1 / pointA.w) * alpha + (1 / pointB.w) * beta + (1 / pointC.w) * gamma;
+
+    interpolatedU /= interpolatedW;
+    interpolatedV /= interpolatedW;
 
     int textureX = abs((int)(interpolatedU * TEXTURE_WIDTH));
     int textureY = abs((int)(interpolatedV * TEXTURE_HEIGHT));
@@ -237,9 +246,9 @@ void drawTexel(
 }
 
 void drawTexturedTriangle(
-    int x0, int y0, float u0, float v0,
-    int x1, int y1, float u1, float v1,
-    int x2, int y2, float u2, float v2,
+    int x0, int y0, int z0, int w0, float u0, float v0,
+    int x1, int y1, int z1, int w1, float u1, float v1,
+    int x2, int y2, int z2, int w2, float u2, float v2,
     uint32_t* texture
 )
 {
@@ -247,6 +256,8 @@ void drawTexturedTriangle(
     {
         intSwap(&x0, &x1);
         intSwap(&y0, &y1);
+        intSwap(&z0, &z1);
+        intSwap(&w0, &w1);
         floatSwap(&u0, &u1);
         floatSwap(&v0, &v1);
     }
@@ -255,6 +266,8 @@ void drawTexturedTriangle(
     {
         intSwap(&x1, &x2);
         intSwap(&y1, &y2);
+        intSwap(&z1, &z2);
+        intSwap(&w1, &w2);
         floatSwap(&u1, &u2);
         floatSwap(&v1, &v2);
     }
@@ -263,13 +276,15 @@ void drawTexturedTriangle(
     {
         intSwap(&x0, &x1);
         intSwap(&y0, &y1);
+        intSwap(&z0, &z1);
+        intSwap(&w0, &w1);
         floatSwap(&u0, &u1);
         floatSwap(&v0, &v1);
     }
 
-    vector2_t pointA = { x0, y0 };
-    vector2_t pointB = { x1, y1 };
-    vector2_t pointC = { x2, y2 };
+    vector4_t pointA = { x0, y0, z0, w0 };
+    vector4_t pointB = { x1, y1, z1, w1 };
+    vector4_t pointC = { x2, y2, z2, w2 };
 
     float invertedSlopeLeft = 0;
     float invertedSlopeRight = 0;
