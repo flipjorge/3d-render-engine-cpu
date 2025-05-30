@@ -230,8 +230,8 @@ void drawTexel(
     float interpolatedU = (u0) * alpha + (u1) * beta + (u2) * gamma;
     float interpolatedV = (v0) * alpha + (v1) * beta + (v2) * gamma;
 
-    int textureX = abs((int)(interpolatedU * 64));
-    int textureY = abs((int)(interpolatedV * 64));
+    int textureX = abs((int)(interpolatedU * TEXTURE_WIDTH));
+    int textureY = abs((int)(interpolatedV * TEXTURE_HEIGHT));
 
     drawPixel(x, y, texture[(64 * textureY) + textureX]);
 }
