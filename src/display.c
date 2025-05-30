@@ -219,7 +219,7 @@ vector3_t barycentricWeights(vector2_t a, vector2_t b, vector2_t c, vector2_t p)
 void drawTexel(
     int x, int y, uint32_t* texture,
     vector4_t pointA, vector4_t pointB, vector4_t pointC,
-    float u0, float v0, float u1, float v1, float u2, float v2
+    texture_t textureA, texture_t textureB, texture_t textureC
 ) {
     vector2_t p = { x, y };
     vector2_t a = vector4to2(pointA);
@@ -232,8 +232,8 @@ void drawTexel(
     float beta = weights.y;
     float gamma = weights.z;
 
-    float interpolatedU = (u0 / pointA.w) * alpha + (u1 / pointB.w) * beta + (u2 / pointC.w) * gamma;
-    float interpolatedV = (v0 / pointA.w) * alpha + (v1 / pointB.w) * beta + (v2 / pointC.w) * gamma;
+    float interpolatedU = (textureA.u / pointA.w) * alpha + (textureB.u / pointB.w) * beta + (textureC.u / pointC.w) * gamma;
+    float interpolatedV = (textureA.v / pointA.w) * alpha + (textureB.v / pointB.w) * beta + (textureC.v / pointC.w) * gamma;
     float interpolatedW = (1 / pointA.w) * alpha + (1 / pointB.w) * beta + (1 / pointC.w) * gamma;
 
     interpolatedU /= interpolatedW;
@@ -285,6 +285,9 @@ void drawTexturedTriangle(
     vector4_t pointA = { x0, y0, z0, w0 };
     vector4_t pointB = { x1, y1, z1, w1 };
     vector4_t pointC = { x2, y2, z2, w2 };
+    texture_t textureA = { u0, v0 };
+    texture_t textureB = { u1, v1 };
+    texture_t textureC = { u2, v2 };
 
     float invertedSlopeLeft = 0;
     float invertedSlopeRight = 0;
@@ -302,7 +305,7 @@ void drawTexturedTriangle(
             }
 
             for (int x = xStart; x < xEnd; x++) {
-                drawTexel(x, y, texture, pointA, pointB, pointC, u0, v0, u1, v1, u2, v2);
+                drawTexel(x, y, texture, pointA, pointB, pointC, textureA, textureB, textureC);
             }
         }
     }
@@ -323,7 +326,7 @@ void drawTexturedTriangle(
             }
 
             for (int x = xStart; x < xEnd; x++) {
-                drawTexel(x, y, texture, pointA, pointB, pointC, u0, v0, u1, v1, u2, v2);
+                drawTexel(x, y, texture, pointA, pointB, pointC, textureA, textureB, textureC);
             }
         }
     }
