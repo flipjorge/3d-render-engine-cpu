@@ -2,6 +2,7 @@
 #define TEXTURE
 
 #include <stdint.h>
+#include "png/upng.h"
 
 #define TEXTURE_WIDTH 64
 #define TEXTURE_HEIGHT 64
@@ -12,6 +13,7 @@ typedef struct {
 } texture_t;
 
 uint32_t* convertARGBtoRGBATexture(const uint32_t* src, int numPixels);
+void loadTextureFromPng(const char* filename, upng_t** png, uint32_t** texture);
 
 extern const uint8_t sampleTexture[];
 

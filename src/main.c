@@ -37,6 +37,7 @@ bool backCulling;
 light_t light;
 
 uint32_t* texture = NULL;
+upng_t* png = NULL;
 
 void setup()
 {
@@ -69,8 +70,10 @@ void setup()
         (vector3_t){ 0, 0, 1 }
     };
 
-    int numberPixels = TEXTURE_WIDTH * TEXTURE_HEIGHT;
-    texture = convertARGBtoRGBATexture((const uint32_t*)sampleTexture, numberPixels);
+    // int numberPixels = TEXTURE_WIDTH * TEXTURE_HEIGHT;
+    // texture = convertARGBtoRGBATexture((const uint32_t*)sampleTexture, numberPixels);
+
+    loadTextureFromPng("./assets/cube.png", &png, &texture);
 }
 
 void processInput()
