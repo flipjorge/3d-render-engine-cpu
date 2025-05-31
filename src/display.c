@@ -239,8 +239,8 @@ void drawTexel(
     interpolatedU /= interpolatedW;
     interpolatedV /= interpolatedW;
 
-    int textureX = abs((int)(interpolatedU * TEXTURE_WIDTH));
-    int textureY = abs((int)(interpolatedV * TEXTURE_HEIGHT));
+    int textureX = abs((int)(interpolatedU * TEXTURE_WIDTH)) % TEXTURE_WIDTH;
+    int textureY = abs((int)(interpolatedV * TEXTURE_HEIGHT)) % TEXTURE_HEIGHT;
 
     drawPixel(x, y, texture[(64 * textureY) + textureX]);
 }
