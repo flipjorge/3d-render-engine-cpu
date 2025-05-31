@@ -50,7 +50,8 @@ void setup()
         windowWidth,
         windowHeight);
 
-    createCube(&cube, 2, (vector3_t){ 0, 0, 0 });
+    // createCube(&cube, 2, (vector3_t){ 0, 0, 0 });
+    loadMeshFromObj(&cube, "./assets/cube.obj"); 
     loadMeshFromObj(&piramid, "./assets/piramid.obj"); 
 
     array_push(meshes, &cube);
