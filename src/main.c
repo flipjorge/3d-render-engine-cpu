@@ -11,6 +11,7 @@
 #include "matrix.h"
 #include "light.h"
 #include "texture.h"
+#include "camera.h"
 
 #define TARGET_FRAME_RATE 60
 #define TARGET_FRAME_TIME (1000 / TARGET_FRAME_RATE)
@@ -40,6 +41,8 @@ light_t light;
 
 uint32_t* texture = NULL;
 upng_t* png = NULL;
+
+camera_t camera;
 
 void setup()
 {
@@ -74,10 +77,12 @@ void setup()
         (vector3_t){ 0, 0, 1 }
     };
 
-    // int numberPixels = TEXTURE_WIDTH * TEXTURE_HEIGHT;
-    // texture = convertARGBtoRGBATexture((const uint32_t*)sampleTexture, numberPixels);
-
     loadTextureFromPng("./assets/cube.png", &png, &texture);
+
+    camera = (camera_t){
+        .position = { 0, 0, 0 },
+        .direction = { 0, 0, 1 }
+    };
 }
 
 void processInput()
@@ -197,7 +202,7 @@ void update()
                 vector4to3(transformedVertices[2])
             };
 
-            if(backCulling && !isFaceFacingCamera((vector3_t){ 0, 0, 0 }, verticesForBackCulling)) continue;
+            if(backCulling && !isFaceFacingCamera(camera.position, verticesForBackCulling)) continue;
             
             const float intensityFactor = lightIntensityFactor(light.direction, verticesForBackCulling);
             triangle.color = lightApplyIntensity(0xFFFFFFFF, intensityFactor);
