@@ -15,10 +15,13 @@
 #define TARGET_FRAME_RATE 60
 #define TARGET_FRAME_TIME (1000 / TARGET_FRAME_RATE)
 
+#define MAX_TRIANGLES 10000
+
 bool isRunning = false;
 
 mesh_t** meshes = NULL;
-triangle_t* trianglesToRender = NULL;
+triangle_t trianglesToRender[MAX_TRIANGLES];
+int numberTrianglesToRender = 0;
 
 mesh_t cube;
 mesh_t piramid;
@@ -141,7 +144,7 @@ void update()
     piramid.scale = (vector3_t){ 2, 2, 2 };
 
     const int numMeshes = array_length(meshes);
-    trianglesToRender = NULL;
+    numberTrianglesToRender = 0;
 
     for (size_t m = 0; m < numMeshes; m++)
     {
@@ -203,7 +206,10 @@ void update()
             triangle.textureCoordinates[1] = face.bUV;
             triangle.textureCoordinates[2] = face.cUV;
 
-            array_push(trianglesToRender, triangle);
+            if(numberTrianglesToRender > MAX_TRIANGLES) break;
+            
+            trianglesToRender[numberTrianglesToRender] = triangle;
+            numberTrianglesToRender++;
         }
     }
 }
@@ -215,9 +221,7 @@ void render()
 
     drawGrid(40, 0x333333FF);
 
-    const int numberTriangles = array_length(trianglesToRender);
-
-    for (size_t i = 0; i < numberTriangles; i++)
+    for (size_t i = 0; i < numberTrianglesToRender; i++)
     {
         triangle_t triangle = trianglesToRender[i];
 
@@ -288,8 +292,6 @@ void render()
         }
     }
     
-    array_free(trianglesToRender);
-
     renderColorBuffer();
     clearColorBuffer(0x000000FF);
     clearDepthBuffer();
@@ -315,7 +317,6 @@ int main()
     freeMesh(&cube);
     freeMesh(&piramid);
     if(meshes) array_free(meshes);
-    if(trianglesToRender) array_free(trianglesToRender);
 
     return 0;
 }
