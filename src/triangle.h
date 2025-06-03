@@ -13,7 +13,6 @@ typedef struct {
 typedef struct {
     vector4_t points[3];
     texture_t textureCoordinates[3];
-    float depth;
     uint32_t color;
 } triangle_t;
 

@@ -8,7 +8,6 @@
 #include "cube.h"
 #include "obj.h"
 #include "face.h"
-#include "sort.h"
 #include "matrix.h"
 #include "light.h"
 #include "texture.h"
@@ -197,8 +196,6 @@ void update()
 
             if(backCulling && !isFaceFacingCamera((vector3_t){ 0, 0, 0 }, verticesForBackCulling)) continue;
             
-            triangle.depth = (faceVertices[0].z + faceVertices[1].z + faceVertices[2].z)/3;
-            
             const float intensityFactor = lightIntensityFactor(light.direction, verticesForBackCulling);
             triangle.color = lightApplyIntensity(0xFFFFFFFF, intensityFactor);
 
@@ -209,8 +206,6 @@ void update()
             array_push(trianglesToRender, triangle);
         }
     }
-    
-    sortTrianglesByDepth(trianglesToRender);
 }
 
 void render()
