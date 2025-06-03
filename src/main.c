@@ -12,11 +12,18 @@
 #include "light.h"
 #include "texture.h"
 #include "camera.h"
+#include "clipping.h"
 
 #define TARGET_FRAME_RATE 60
 #define TARGET_FRAME_TIME (1000 / TARGET_FRAME_RATE)
 
+#define FOV M_PI / 3
+#define Z_NEAR 0.01
+#define Z_FAR 100
+
 #define MAX_TRIANGLES 10000
+
+#define FRUSTUM_NUM_PLANES 6
 
 bool isRunning = false;
 
@@ -44,6 +51,8 @@ upng_t* png = NULL;
 
 camera_t camera;
 
+plane_t frustumPlanes[FRUSTUM_NUM_PLANES];
+
 void setup()
 {
     colorBuffer = malloc(sizeof(uint32_t) * windowWidth * windowHeight);
@@ -63,7 +72,7 @@ void setup()
     array_push(meshes, &cube);
     array_push(meshes, &piramid);
 
-    projectionMatrix = matrix4MakePerspective( M_PI / 3, (float)windowHeight / (float)windowWidth, 0.01, 100 );
+    projectionMatrix = matrix4MakePerspective( FOV, (float)windowHeight / (float)windowWidth, Z_NEAR, Z_FAR );
     
     previousFrameTicks = SDL_GetTicks();
 
@@ -176,6 +185,8 @@ void update()
     vector3_t target = { 0, 0, 30 };
     vector3_t up = { 0, 1, 0 };
     matrix4_t viewMatrix = matrix4LookAt(&eye, &target, &up);
+
+    initFrustumPlane(&frustumPlanes, FOV, Z_NEAR, Z_FAR);
 
     const int numMeshes = array_length(meshes);
     numberTrianglesToRender = 0;
