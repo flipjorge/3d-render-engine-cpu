@@ -11,9 +11,11 @@ const int windowWidth;
 const int windowHeight;
 
 uint32_t* colorBuffer;
+float* depthBuffer;
 
 bool initializeSDL();
 void clearColorBuffer(uint32_t color);
+void clearDepthBuffer();
 void renderColorBuffer();
 void clear();
 

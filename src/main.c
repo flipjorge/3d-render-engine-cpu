@@ -42,6 +42,7 @@ upng_t* png = NULL;
 void setup()
 {
     colorBuffer = malloc(sizeof(uint32_t) * windowWidth * windowHeight);
+    depthBuffer = malloc(sizeof(float) * windowWidth * windowHeight);
 
     colorBufferTexture = SDL_CreateTexture(
         renderer,
@@ -290,6 +291,7 @@ void render()
 
     renderColorBuffer();
     clearColorBuffer(0x000000FF);
+    clearDepthBuffer();
     
     SDL_RenderPresent(renderer);
 }

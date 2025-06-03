@@ -52,8 +52,17 @@ void renderColorBuffer()
         NULL);
 }
 
+void clearDepthBuffer()
+{
+    for (size_t i = 0; i < windowWidth * windowHeight; i++)
+    {
+        depthBuffer[i] = 1.0;
+    }
+}
+
 void clear() {
     free(colorBuffer);
+    free(depthBuffer);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -242,7 +251,14 @@ void drawTexel(
     int textureX = abs((int)(interpolatedU * TEXTURE_WIDTH)) % TEXTURE_WIDTH;
     int textureY = abs((int)(interpolatedV * TEXTURE_HEIGHT)) % TEXTURE_HEIGHT;
 
-    drawPixel(x, y, texture[(64 * textureY) + textureX]);
+    int pixelIndex = windowWidth * y + x;
+
+    interpolatedW = 1 - interpolatedW;
+
+    if(interpolatedW < depthBuffer[pixelIndex]) {
+        drawPixel(x, y, texture[(64 * textureY) + textureX]);
+        depthBuffer[pixelIndex] = interpolatedW;
+    }
 }
 
 void drawTexturedTriangle(
