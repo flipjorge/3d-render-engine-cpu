@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <math.h>
+#include <stdio.h>
 #include "matrix.h"
 
 matrix4_t matrix4Identity()
@@ -186,4 +187,24 @@ matrix4_t matrix4TRS(const matrix4_t* scale, const matrix4_t* rotation, const ma
     matrix4_t matrix = matrix4MultiplyMatrix4(rotation, scale);
     matrix = matrix4MultiplyMatrix4(translation, &matrix);
     return matrix;
+}
+
+matrix4_t matrix4LookAt(const vector3_t* eye, const vector3_t* target, const vector3_t* up)
+{
+    vector3_t z = vector3Sub(*target, *eye);
+    z = vector3Normalized(z);
+
+    vector3_t x = vector3CrossProduct(*up, z);
+    x = vector3Normalized(x);
+    
+    vector3_t y = vector3CrossProduct(z, x);
+    
+    matrix4_t viewMatrix = {{
+        { x.x, x.y, x.z, -vector3DotProduct(x, *eye) },
+        { y.x, y.y, y.z, -vector3DotProduct(y, *eye) },
+        { z.x, z.y, z.z, -vector3DotProduct(z, *eye) },
+        { 0, 0, 0, 1 }
+    }};
+
+    return viewMatrix;
 }

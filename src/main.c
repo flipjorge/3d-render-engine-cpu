@@ -148,6 +148,11 @@ void update()
     piramid.rotation = vector3Sum( piramid.rotation, (vector3_t){ 0, rotationIncrement, 0 } );
     piramid.scale = (vector3_t){ 2, 2, 2 };
 
+    vector3_t eye = camera.position;
+    vector3_t target = { 0, 0, 30 };
+    vector3_t up = { 0, 1, 0 };
+    matrix4_t viewMatrix = matrix4LookAt(&eye, &target, &up);
+
     const int numMeshes = array_length(meshes);
     numberTrianglesToRender = 0;
 
@@ -173,6 +178,7 @@ void update()
             {
                 vector4_t transformedVertice = vector3to4(faceVertices[v]);
                 transformedVertice = matrix4MultiplyVector4(&transformMatrix, &transformedVertice);
+                transformedVertice = matrix4MultiplyVector4(&viewMatrix, &transformedVertice);
                 transformedVertices[v] = transformedVertice;
             }
 

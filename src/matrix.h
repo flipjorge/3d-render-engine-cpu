@@ -21,5 +21,6 @@ vector4_t matrix4MultiplyVector4(const matrix4_t* matrix, const vector4_t* vecto
 matrix4_t matrix4MultiplyMatrix4(const matrix4_t* matrix1, const matrix4_t* matrix2);
 vector4_t matrix4MultiplyVector4Project(const matrix4_t* projection, const vector4_t* vector);
 matrix4_t matrix4TRS(const matrix4_t* scale, const matrix4_t* rotation, const matrix4_t* translation);
+matrix4_t matrix4LookAt(const vector3_t* eye, const vector3_t* target, const vector3_t* up);
 
 #endif
