@@ -121,6 +121,30 @@ void processInput()
         {
             isRunning = false;
         }
+        if (event.key.keysym.sym == SDLK_w)
+        {
+            camera.position = vector3Sum(camera.position, (vector3_t){ 0, 0, 1 });
+        }
+        if (event.key.keysym.sym == SDLK_s)
+        {
+            camera.position = vector3Sum(camera.position, (vector3_t){ 0, 0, -1 });
+        }
+        if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
+        {
+            camera.position = vector3Sum(camera.position, (vector3_t){ -1, 0, 0 });
+        }
+        if (event.key.keysym.sym == SDLK_d || event.key.keysym.sym == SDLK_RIGHT)
+        {
+            camera.position = vector3Sum(camera.position, (vector3_t){ 1, 0, 0 });
+        }
+        if (event.key.keysym.sym == SDLK_UP)
+        {
+            camera.position = vector3Sum(camera.position, (vector3_t){ 0, 1, 0 });
+        }
+        if (event.key.keysym.sym == SDLK_DOWN)
+        {
+            camera.position = vector3Sum(camera.position, (vector3_t){ 0, -1, 0 });
+        }
         break;
     }
 }
@@ -141,11 +165,11 @@ void update()
     float rotationIncrement = 1 * frameTimeSeconds;
 
     cube.position = (vector3_t){ 0, 0, 30 };
-    cube.rotation = vector3Sum( cube.rotation, (vector3_t){ rotationIncrement, rotationIncrement, rotationIncrement } );
+    // cube.rotation = vector3Sum( cube.rotation, (vector3_t){ rotationIncrement, rotationIncrement, rotationIncrement } );
     cube.scale = (vector3_t){ 2, 2, 2};
 
     piramid.position = (vector3_t){ 0, 10, 30 };
-    piramid.rotation = vector3Sum( piramid.rotation, (vector3_t){ 0, rotationIncrement, 0 } );
+    // piramid.rotation = vector3Sum( piramid.rotation, (vector3_t){ 0, rotationIncrement, 0 } );
     piramid.scale = (vector3_t){ 2, 2, 2 };
 
     vector3_t eye = camera.position;
