@@ -142,71 +142,6 @@ void floatSwap(float* a, float* b)
     *b = temp;
 }
 
-void fillFlatBottom(int x0, int y0, int x1, int y1, int x2, int y2, const uint32_t color)
-{
-    float slope1 = (float)(x1 - x0) / (float)(y1 - y0);
-    float slope2 = (float)(x2 - x0) / (float)(y2 - y0);
-    
-    float xStart = x0;
-    float xEnd = x0;
-
-    for (size_t y = y0; y <= y2; y++)
-    {
-        drawLine(xStart, y, xEnd, y, color);
-        xStart += slope1;
-        xEnd += slope2;
-    }
-}
-
-void fillFlatTop(int x0, int y0, int x1, int y1, int x2, int y2, const uint32_t color)
-{
-    float slope1 = (float)(x2 - x0) / (float)(y2 - y0);
-    float slope2 = (float)(x2 - x1) / (float)(y2 - y1);
-    
-    float xStart = x2;
-    float xEnd = x2;
-
-    for (size_t y = y2; y >= y0; y--)
-    {
-        drawLine(xStart, y, xEnd, y, color);
-        xStart -= slope1;
-        xEnd -= slope2;
-    }
-}
-
-void drawFilledTriangle(int x0, int y0, int x1, int y1, int x2, int y2, const uint32_t color)
-{
-    if(y0 > y1)
-    {
-        intSwap(&x0, &x1);
-        intSwap(&y0, &y1);
-    }
-
-    if(y1 > y2)
-    {
-        intSwap(&x1, &x2);
-        intSwap(&y1, &y2);
-    }
-
-    if(y0 > y1)
-    {
-        intSwap(&x0, &x1);
-        intSwap(&y0, &y1);
-    }
-
-    if (y1 == y2) {
-        fillFlatBottom(x0, y0, x1, y1, x2, y2, color);
-    } else if (y0 == y1) {
-        fillFlatTop(x0, y0, x1, y1, x2, y2, color);
-    } else {
-        int mY = y1;
-        int mX = ((float)((x2 - x0) * (y1 - y0)) / (float)(y2 - y0)) + x0;
-
-        fillFlatBottom(x0, y0, x1, y1, mX, mY, color);
-        fillFlatTop(x1, y1, mX, mY, x2, y2, color);
-    }
-}
-
 vector3_t barycentricWeights(vector2_t a, vector2_t b, vector2_t c, vector2_t p) {
     
     vector2_t ac = vector2Sub(c, a);
@@ -223,6 +158,33 @@ vector3_t barycentricWeights(vector2_t a, vector2_t b, vector2_t c, vector2_t p)
 
     vector3_t weights = { alpha, beta, gamma };
     return weights;
+}
+
+void drawTrianglePixel(
+    int x, int y, uint32_t color,
+    vector4_t pointA, vector4_t pointB, vector4_t pointC
+) {
+    vector2_t p = { x, y };
+    vector2_t a = vector4to2(pointA);
+    vector2_t b = vector4to2(pointB);
+    vector2_t c = vector4to2(pointC);
+
+    vector3_t weights = barycentricWeights(a, b, c, p);
+
+    float alpha = weights.x;
+    float beta = weights.y;
+    float gamma = weights.z;
+
+    float interpolatedW = (1 / pointA.w) * alpha + (1 / pointB.w) * beta + (1 / pointC.w) * gamma;
+
+    int pixelIndex = windowWidth * y + x;
+
+    interpolatedW = 1 - interpolatedW;
+
+    if(interpolatedW < depthBuffer[pixelIndex]) {
+        drawPixel(x, y, color);
+        depthBuffer[pixelIndex] = interpolatedW;
+    }
 }
 
 void drawTexel(
@@ -258,6 +220,83 @@ void drawTexel(
     if(interpolatedW < depthBuffer[pixelIndex]) {
         drawPixel(x, y, texture[(64 * textureY) + textureX]);
         depthBuffer[pixelIndex] = interpolatedW;
+    }
+}
+
+void drawFilledTriangle(
+    int x0, int y0, int z0, int w0,
+    int x1, int y1, int z1, int w1,
+    int x2, int y2, int z2, int w2,
+    const uint32_t color)
+{
+    if(y0 > y1)
+    {
+        intSwap(&x0, &x1);
+        intSwap(&y0, &y1);
+        intSwap(&z0, &z1);
+        intSwap(&w0, &w1);
+    }
+
+    if(y1 > y2)
+    {
+        intSwap(&x1, &x2);
+        intSwap(&y1, &y2);
+        intSwap(&z1, &z2);
+        intSwap(&w1, &w2);
+    }
+
+    if(y0 > y1)
+    {
+        intSwap(&x0, &x1);
+        intSwap(&y0, &y1);
+        intSwap(&z0, &z1);
+        intSwap(&w0, &w1);
+    }
+
+    vector4_t pointA = { x0, y0, z0, w0 };
+    vector4_t pointB = { x1, y1, z1, w1 };
+    vector4_t pointC = { x2, y2, z2, w2 };
+
+    float invertedSlopeLeft = 0;
+    float invertedSlopeRight = 0;
+
+    if (y1 - y0 != 0) invertedSlopeLeft = (float)(x1 - x0) / abs(y1 - y0);
+    if (y2 - y0 != 0) invertedSlopeRight = (float)(x2 - x0) / abs(y2 - y0);
+
+    if (y1 - y0 != 0) {
+        for (int y = y0; y <= y1; y++) {
+            int xStart = x1 + (y - y1) * invertedSlopeLeft;
+            int xEnd = x0 + (y - y0) * invertedSlopeRight;
+
+            if (xEnd < xStart) {
+                intSwap(&xStart, &xEnd);
+            }
+
+            for (int x = xStart; x < xEnd; x++) {
+                drawPixel(x, y, color);
+            }
+        }
+    }
+
+    invertedSlopeLeft = 0;
+    invertedSlopeRight = 0;
+
+    if (y2 - y1 != 0) invertedSlopeLeft = (float)(x2 - x1) / abs(y2 - y1);
+    if (y2 - y0 != 0) invertedSlopeRight = (float)(x2 - x0) / abs(y2 - y0);
+
+    if (y2 - y1 != 0) {
+        for (int y = y1; y <= y2; y++) {
+            int xStart = x1 + (y - y1) * invertedSlopeLeft;
+            int xEnd = x0 + (y - y0) * invertedSlopeRight;
+
+            if (xEnd < xStart) {
+                intSwap(&xStart, &xEnd);
+            }
+
+            for (int x = xStart; x < xEnd; x++) {
+                drawTrianglePixel(x, y, color, pointA, pointB, pointC);
+            }
+        }
     }
 }
 
