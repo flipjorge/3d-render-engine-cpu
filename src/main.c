@@ -308,6 +308,7 @@ int main()
 
     clear();
     
+    upng_free(png);
     freeMesh(&cube);
     freeMesh(&piramid);
     if(meshes) array_free(meshes);
