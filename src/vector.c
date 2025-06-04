@@ -120,3 +120,13 @@ vector2_t vector4to2(vector4_t vector)
 {
     return (vector2_t){ vector.x, vector.y };
 }
+
+vector3_t vector3New()
+{
+    return (vector3_t){ 0, 0, 0 };
+}
+
+vector3_t vector3Clone(vector3_t vector)
+{
+    return (vector3_t){ vector.x, vector.y, vector.z };
+}

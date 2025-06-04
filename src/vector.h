@@ -44,4 +44,7 @@ vector4_t vector3to4(vector3_t vector);
 vector3_t vector4to3(vector4_t vector);
 vector2_t vector4to2(vector4_t vector);
 
+vector3_t vector3New();
+vector3_t vector3Clone(vector3_t vector);
+
 #endif
