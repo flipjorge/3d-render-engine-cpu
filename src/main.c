@@ -70,7 +70,14 @@ void setup()
     array_push(meshes, &cube);
     array_push(meshes, &piramid);
 
-    projectionMatrix = matrix4MakePerspective( FOV, (float)windowHeight / (float)windowWidth, Z_NEAR, Z_FAR );
+    float aspectY = (float)windowHeight / (float)windowWidth;
+    float aspectX = (float)windowWidth / (float)windowHeight;
+    float fovY = FOV;
+    float fovX = atan(tan(fovY / 2) * aspectX) * 2;
+      
+    initFrustumPlane(frustumPlanes, fovX, fovY, Z_NEAR, Z_FAR);
+    
+    projectionMatrix = matrix4MakePerspective( FOV, aspectY, Z_NEAR, Z_FAR );
     
     previousFrameTicks = SDL_GetTicks();
 
@@ -183,9 +190,6 @@ void update()
     vector3_t target = { camera.position.x, camera.position.y, camera.position.z + 1 };
     vector3_t up = { 0, 1, 0 };
     matrix4_t viewMatrix = matrix4LookAt(&eye, &target, &up);
-
-    initFrustumPlane(frustumPlanes, FOV, Z_NEAR, Z_FAR);
-
 
     const int numMeshes = array_length(meshes);
     numberTrianglesToRender = 0;

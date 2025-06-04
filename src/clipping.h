@@ -27,7 +27,7 @@ typedef struct {
     int numVertices;
 } polygon_t;
 
-void initFrustumPlane(plane_t* frustumPlanes, float fov, float zNear, float zFar);
+void initFrustumPlane(plane_t* frustumPlanes, float fovX, float fovY, float zNear, float zFar);
 polygon_t createPolygonFromTriangle(vector3_t v0, vector3_t v1, vector3_t v2);
 void clipPolygon(polygon_t* polygon, const plane_t* frustumPlanes);
 void trianglesFromPolygon(const polygon_t* polygon, triangle_t* triangles, int* numberTriangles);
