@@ -2,6 +2,11 @@
 #define CLIPPING
 
 #include "vector.h"
+#include "triangle.h"
+
+#define FRUSTUM_NUM_PLANES 6
+#define MAX_NUM_POLY_VERTICES 10
+#define MAX_NUM_POLY_TRIANGLES 10
 
 enum {
     LEFT_FRUSTUM_PLANE,
@@ -17,6 +22,14 @@ typedef struct {
     vector3_t normal;
 } plane_t;
 
+typedef struct {
+    vector3_t vertices[MAX_NUM_POLY_VERTICES];
+    int numVertices;
+} polygon_t;
+
 void initFrustumPlane(plane_t* frustumPlanes, float fov, float zNear, float zFar);
+polygon_t createPolygonFromTriangle(vector3_t v0, vector3_t v1, vector3_t v2);
+void clipPolygon(polygon_t* polygon, const plane_t* frustumPlanes);
+void trianglesFromPolygon(const polygon_t* polygon, triangle_t* triangles, int* numberTriangles);
 
 #endif

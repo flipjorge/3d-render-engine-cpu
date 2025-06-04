@@ -23,8 +23,6 @@
 
 #define MAX_TRIANGLES 10000
 
-#define FRUSTUM_NUM_PLANES 6
-
 bool isRunning = false;
 
 mesh_t** meshes = NULL;
@@ -182,11 +180,12 @@ void update()
     piramid.scale = (vector3_t){ 2, 2, 2 };
 
     vector3_t eye = camera.position;
-    vector3_t target = { 0, 0, 30 };
+    vector3_t target = { camera.position.x, camera.position.y, camera.position.z + 1 };
     vector3_t up = { 0, 1, 0 };
     matrix4_t viewMatrix = matrix4LookAt(&eye, &target, &up);
 
-    initFrustumPlane(&frustumPlanes, FOV, Z_NEAR, Z_FAR);
+    initFrustumPlane(frustumPlanes, FOV, Z_NEAR, Z_FAR);
+
 
     const int numMeshes = array_length(meshes);
     numberTrianglesToRender = 0;
@@ -217,26 +216,6 @@ void update()
                 transformedVertices[v] = transformedVertice;
             }
 
-            triangle_t triangle;
-
-            for (size_t v = 0; v < 3; v++)
-            {
-                vector4_t projectedVertex = matrix4MultiplyVector4Project(&projectionMatrix, &transformedVertices[v]);
-                
-                projectedVertex.x *= windowWidth / 2.0;
-                projectedVertex.y *= windowHeight / 2.0;
-
-                projectedVertex.y *= -1;
-                
-                projectedVertex.x += windowWidth / 2.0;
-                projectedVertex.y += windowHeight / 2.0;
-
-                triangle.points[v].x = projectedVertex.x;
-                triangle.points[v].y = projectedVertex.y;
-                triangle.points[v].z = projectedVertex.z;
-                triangle.points[v].w = projectedVertex.w;
-            }
-
             vector3_t verticesForBackCulling[3] = {
                 vector4to3(transformedVertices[0]),
                 vector4to3(transformedVertices[1]),
@@ -244,18 +223,61 @@ void update()
             };
 
             if(backCulling && !isFaceFacingCamera(camera.position, verticesForBackCulling)) continue;
-            
-            const float intensityFactor = lightIntensityFactor(light.direction, verticesForBackCulling);
-            triangle.color = lightApplyIntensity(0xFFFFFFFF, intensityFactor);
 
-            triangle.textureCoordinates[0] = face.aUV;
-            triangle.textureCoordinates[1] = face.bUV;
-            triangle.textureCoordinates[2] = face.cUV;
-
-            if(numberTrianglesToRender > MAX_TRIANGLES) break;
+            polygon_t polygon = createPolygonFromTriangle(
+                vector4to3(transformedVertices[0]),
+                vector4to3(transformedVertices[1]),
+                vector4to3(transformedVertices[2])
+            );
             
-            trianglesToRender[numberTrianglesToRender] = triangle;
-            numberTrianglesToRender++;
+            clipPolygon(&polygon, frustumPlanes);
+
+            triangle_t trianglesAfterClipping[MAX_NUM_POLY_TRIANGLES];
+            int numberTrianglesAfterClipping = 0;
+
+            trianglesFromPolygon(&polygon, trianglesAfterClipping, &numberTrianglesAfterClipping);
+
+            for (int t = 0; t < numberTrianglesAfterClipping; t++) {
+                triangle_t triangleAfterClipping = trianglesAfterClipping[t];
+
+                triangle_t triangle;
+
+                for (size_t v = 0; v < 3; v++)
+                {
+                    vector4_t projectedVertex = matrix4MultiplyVector4Project(&projectionMatrix, &triangleAfterClipping.points[v]);
+                    
+                    projectedVertex.x *= windowWidth / 2.0;
+                    projectedVertex.y *= windowHeight / 2.0;
+
+                    projectedVertex.y *= -1;
+                    
+                    projectedVertex.x += windowWidth / 2.0;
+                    projectedVertex.y += windowHeight / 2.0;
+
+                    triangle.points[v].x = projectedVertex.x;
+                    triangle.points[v].y = projectedVertex.y;
+                    triangle.points[v].z = projectedVertex.z;
+                    triangle.points[v].w = projectedVertex.w;
+                }
+
+                vector3_t verticesForIntensityFactor[3] = {
+                    vector4to3(transformedVertices[0]),
+                    vector4to3(transformedVertices[1]),
+                    vector4to3(transformedVertices[2])
+                };
+                
+                const float intensityFactor = lightIntensityFactor(light.direction, verticesForIntensityFactor);
+                triangle.color = lightApplyIntensity(0xFFFFFFFF, intensityFactor);
+
+                triangle.textureCoordinates[0] = face.aUV;
+                triangle.textureCoordinates[1] = face.bUV;
+                triangle.textureCoordinates[2] = face.cUV;
+
+                if(numberTrianglesToRender > MAX_TRIANGLES) break;
+                
+                trianglesToRender[numberTrianglesToRender] = triangle;
+                numberTrianglesToRender++;
+            }
         }
     }
 }
@@ -333,7 +355,7 @@ void render()
                 triangle.points[1].y,
                 triangle.points[2].x,
                 triangle.points[2].y,
-                0x0000000
+                0xFFFFFF00
             );
         }
     }
