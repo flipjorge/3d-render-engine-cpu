@@ -231,7 +231,10 @@ void update()
             polygon_t polygon = createPolygonFromTriangle(
                 vector4to3(transformedVertices[0]),
                 vector4to3(transformedVertices[1]),
-                vector4to3(transformedVertices[2])
+                vector4to3(transformedVertices[2]),
+                face.aUV,
+                face.bUV,
+                face.cUV
             );
             
             clipPolygon(&polygon, frustumPlanes);
@@ -273,9 +276,9 @@ void update()
                 const float intensityFactor = lightIntensityFactor(light.direction, verticesForIntensityFactor);
                 triangle.color = lightApplyIntensity(0xFFFFFFFF, intensityFactor);
 
-                triangle.textureCoordinates[0] = face.aUV;
-                triangle.textureCoordinates[1] = face.bUV;
-                triangle.textureCoordinates[2] = face.cUV;
+                triangle.textureCoordinates[0] = triangleAfterClipping.textureCoordinates[0];
+                triangle.textureCoordinates[1] = triangleAfterClipping.textureCoordinates[1];
+                triangle.textureCoordinates[2] = triangleAfterClipping.textureCoordinates[2];
 
                 if(numberTrianglesToRender > MAX_TRIANGLES) break;
                 

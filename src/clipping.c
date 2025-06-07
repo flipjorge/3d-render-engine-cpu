@@ -41,22 +41,33 @@ void initFrustumPlane(plane_t* frustumPlanes, float fovX, float fovY, float zNea
     frustumPlanes[FAR_FRUSTUM_PLANE].normal.z = -1;
 }
 
-polygon_t createPolygonFromTriangle(vector3_t v0, vector3_t v1, vector3_t v2)
+polygon_t createPolygonFromTriangle(
+    vector3_t v0, vector3_t v1, vector3_t v2,
+    texture_t uv0, texture_t uv1, texture_t uv2)
 {
     polygon_t polygon = {
         .vertices = { v0, v1, v2 },
+        .uvCoords = { uv0, uv1, uv2 },
         .numVertices = 3
     };
     return polygon;
 }
 
+float floatLerp(float a, float b, float t) {
+    return a + t * (b - a);
+}
+
 void clipPolygonAgainstPlane(polygon_t* polygon, const plane_t* plane)
 {
     vector3_t insideVertices[MAX_NUM_POLY_VERTICES];
+    texture_t insideUVs[MAX_NUM_POLY_VERTICES];
     int numInsideVertices = 0;
 
     vector3_t* currentVertex = &polygon->vertices[0];
     vector3_t* previousVertex = &polygon->vertices[polygon->numVertices - 1];
+
+    texture_t* currentUV = &polygon->uvCoords[0];
+    texture_t* previousUV = &polygon->uvCoords[polygon->numVertices - 1];
 
     float currentDot = 0;
     float previousDot = vector3DotProduct(vector3Sub(*previousVertex, plane->point), plane->normal);
@@ -68,30 +79,41 @@ void clipPolygonAgainstPlane(polygon_t* polygon, const plane_t* plane)
         if (currentDot * previousDot < 0) {
             // Find the interpolation factor t
             float t = previousDot / (previousDot - currentDot);
-            
-            // Calculate the intersection point I = Q1 + t(Q2-Q1)
-            vector3_t intersectionPoint = vector3Clone(*currentVertex);
-            intersectionPoint = vector3Sub(intersectionPoint, *previousVertex);
-            intersectionPoint = vector3Multiple(intersectionPoint, (vector3_t){ t, t, t });
-            intersectionPoint = vector3Sum(intersectionPoint, *previousVertex); // I = Qp + t(Qc-Qp)
+
+            vector3_t intersectionPoint = (vector3_t){
+                .x = floatLerp(previousVertex->x, currentVertex->x, t),
+                .y = floatLerp(previousVertex->y, currentVertex->y, t),
+                .z = floatLerp(previousVertex->z, currentVertex->z, t)
+            };
+
+            texture_t intersectionUV = (texture_t){
+                .u = floatLerp(previousUV->u, currentUV->u, t),
+                .v = floatLerp(previousUV->v, currentUV->v, t)
+            };
 
             insideVertices[numInsideVertices] = vector3Clone(intersectionPoint);
+            insideUVs[numInsideVertices] = intersectionUV;
             numInsideVertices++;
         }
 
         // Current vertex is inside the plane
         if (currentDot > 0) {
             insideVertices[numInsideVertices] = vector3Clone(*currentVertex);
+            insideUVs[numInsideVertices] = (texture_t){ .u = currentUV->u, .v = currentUV->v };
             numInsideVertices++;
         }
 
         previousDot = currentDot;
         previousVertex = currentVertex;
         currentVertex++;
+
+        previousUV = currentUV;
+        currentUV++;
     }
     
     for (int i = 0; i < numInsideVertices; i++) {
         polygon->vertices[i] = vector3Clone(insideVertices[i]);
+        polygon->uvCoords[i] = insideUVs[i];
     }
 
     polygon->numVertices = numInsideVertices;
@@ -118,6 +140,10 @@ void trianglesFromPolygon(const polygon_t* polygon, triangle_t* triangles, int* 
         triangles[i].points[0] = vector3to4(polygon->vertices[index0]);
         triangles[i].points[1] = vector3to4(polygon->vertices[index1]);
         triangles[i].points[2] = vector3to4(polygon->vertices[index2]);
+
+        triangles[i].textureCoordinates[0] = polygon->uvCoords[index0];
+        triangles[i].textureCoordinates[1] = polygon->uvCoords[index1];
+        triangles[i].textureCoordinates[2] = polygon->uvCoords[index2];
     }
 
     *numberTriangles = polygon->numVertices - 2;
