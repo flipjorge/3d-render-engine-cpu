@@ -51,18 +51,8 @@ camera_t camera;
 
 plane_t frustumPlanes[FRUSTUM_NUM_PLANES];
 
-void setup()
+void setupScene()
 {
-    colorBuffer = malloc(sizeof(uint32_t) * windowWidth * windowHeight);
-    depthBuffer = malloc(sizeof(float) * windowWidth * windowHeight);
-
-    colorBufferTexture = SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_RGBA8888,
-        SDL_TEXTUREACCESS_STREAMING,
-        windowWidth,
-        windowHeight);
-
     // createCube(&cube, 2, (vector3_t){ 0, 0, 0 });
     loadMeshFromObj(&cube, "./assets/cube.obj"); 
     loadMeshFromObj(&piramid, "./assets/piramid.obj"); 
@@ -70,8 +60,8 @@ void setup()
     array_push(meshes, &cube);
     array_push(meshes, &piramid);
 
-    float aspectY = (float)windowHeight / (float)windowWidth;
-    float aspectX = (float)windowWidth / (float)windowHeight;
+    float aspectY = (float)getWindowHeight() / (float)getWindowWidth();
+    float aspectX = (float)getWindowWidth() / (float)getWindowHeight();
     float fovY = FOV;
     float fovX = atan(tan(fovY / 2) * aspectX) * 2;
       
@@ -97,6 +87,13 @@ void setup()
         .position = { 0, 0, 0 },
         .direction = { 0, 0, 1 }
     };
+}
+
+void clearScene() {
+    upng_free(png);
+    freeMesh(&cube);
+    freeMesh(&piramid);
+    if(meshes) array_free(meshes);
 }
 
 void processInput()
@@ -253,13 +250,13 @@ void update()
                 {
                     vector4_t projectedVertex = matrix4MultiplyVector4Project(&projectionMatrix, &triangleAfterClipping.points[v]);
                     
-                    projectedVertex.x *= windowWidth / 2.0;
-                    projectedVertex.y *= windowHeight / 2.0;
+                    projectedVertex.x *= getWindowWidth() / 2.0;
+                    projectedVertex.y *= getWindowHeight() / 2.0;
 
                     projectedVertex.y *= -1;
                     
-                    projectedVertex.x += windowWidth / 2.0;
-                    projectedVertex.y += windowHeight / 2.0;
+                    projectedVertex.x += getWindowWidth() / 2.0;
+                    projectedVertex.y += getWindowHeight() / 2.0;
 
                     triangle.points[v].x = projectedVertex.x;
                     triangle.points[v].y = projectedVertex.y;
@@ -291,8 +288,8 @@ void update()
 
 void render()
 {
-    SDL_SetRenderDrawColor(renderer, 0, 0 ,0, 255);
-    SDL_RenderClear(renderer);
+    clearColorBuffer(0x000000FF);
+    clearDepthBuffer();
 
     drawGrid(40, 0x333333FF);
 
@@ -368,16 +365,13 @@ void render()
     }
     
     renderColorBuffer();
-    clearColorBuffer(0x000000FF);
-    clearDepthBuffer();
-    
-    SDL_RenderPresent(renderer);
 }
+
 
 int main()
 {
-    isRunning = initializeSDL();
-    setup();
+    initializeWindow(&isRunning);
+    setupScene();
 
     while (isRunning)
     {
@@ -386,12 +380,8 @@ int main()
         render();
     }
 
-    clear();
-    
-    upng_free(png);
-    freeMesh(&cube);
-    freeMesh(&piramid);
-    if(meshes) array_free(meshes);
+    clearScene();
+    destroyWindow();
 
     return 0;
 }

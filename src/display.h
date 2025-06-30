@@ -3,21 +3,16 @@
 
 #include <SDL2/SDL.h>
 
-SDL_Window *window;
-SDL_Renderer *renderer;
-SDL_Texture* colorBufferTexture;
+void initializeWindow(bool* isRunning);
+void destroyWindow();
 
-const int windowWidth;
-const int windowHeight;
+int getWindowWidth();
+int getWindowHeight();
 
-uint32_t* colorBuffer;
-float* depthBuffer;
-
-bool initializeSDL();
 void clearColorBuffer(uint32_t color);
-void clearDepthBuffer();
 void renderColorBuffer();
-void clear();
+
+void clearDepthBuffer();
 
 void drawPixel(int x, int y, uint32_t color);
 void drawGrid(uint8_t cellSize, uint32_t color);

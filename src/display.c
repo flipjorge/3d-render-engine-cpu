@@ -3,30 +3,72 @@
 #include "vector.h"
 #include "texture.h"
 
-SDL_Window *window = NULL;
-SDL_Renderer *renderer = NULL;
-SDL_Texture* colorBufferTexture = NULL;
+static SDL_Window* window = NULL;
+static SDL_Renderer* renderer = NULL;
+static SDL_Texture* colorBufferTexture = NULL;
 
-const int windowWidth = 800;
-const int windowHeight = 600;
+static const int windowWidth = 800;
+static const int windowHeight = 600;
 
-uint32_t* colorBuffer = NULL;
+static uint32_t* colorBuffer = NULL;
+static float* depthBuffer = NULL;
 
-bool initializeSDL()
+void initializeWindow(bool* isRunning)
 {
-    SDL_Init(SDL_INIT_EVERYTHING);
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        *isRunning = false;
+        return;
+    }
 
     window = SDL_CreateWindow(
-        "My engine",
+        "3d Software Rendering Engine",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         windowWidth,
         windowHeight,
         0);
 
+    if (!window) {
+        *isRunning = false;
+        return;
+    }
+
     renderer = SDL_CreateRenderer(window, -1, 0);
 
-    return true;
+    if (!renderer) {
+        *isRunning = false;
+        return;
+    }
+
+    colorBufferTexture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        windowWidth,
+        windowHeight);
+
+    colorBuffer = malloc(sizeof(uint32_t) * windowWidth * windowHeight);
+    depthBuffer = malloc(sizeof(float) * windowWidth * windowHeight);
+
+    *isRunning = true;
+}
+
+void destroyWindow() {
+    free(colorBuffer);
+    free(depthBuffer);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+}
+
+int getWindowWidth()
+{
+    return windowWidth;
+}
+
+int getWindowHeight()
+{
+    return windowHeight;
 }
 
 void clearColorBuffer(uint32_t color)
@@ -50,6 +92,8 @@ void renderColorBuffer()
         colorBufferTexture,
         NULL,
         NULL);
+
+    SDL_RenderPresent(renderer);
 }
 
 void clearDepthBuffer()
@@ -58,14 +102,6 @@ void clearDepthBuffer()
     {
         depthBuffer[i] = 1.0;
     }
-}
-
-void clear() {
-    free(colorBuffer);
-    free(depthBuffer);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
 }
 
 void drawPixel(int x, int y, uint32_t color)
