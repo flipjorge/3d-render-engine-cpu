@@ -3,6 +3,16 @@
 
 #include <SDL2/SDL.h>
 
+enum RenderMode
+{
+    RENDER_MODE_VERTEX,
+    RENDER_MODE_VERTEX_WIREFRAME,
+    RENDER_MODE_FILL_TRIANGLE,
+    RENDER_MODE_FILL_TRIANGLE_WIREFRAME,
+    RENDER_MODE_TEXTURED,
+    RENDER_MODE_TEXTURED_WIREFRAME
+};
+
 void initializeWindow(bool* isRunning);
 void destroyWindow();
 
@@ -13,6 +23,14 @@ void clearColorBuffer(uint32_t color);
 void renderColorBuffer();
 
 void clearDepthBuffer();
+
+int getRenderMode();
+void setRenderMode(int mode);
+
+bool shouldRenderVertex();
+bool shouldRenderWireframe();
+bool shouldRenderFillTriangles();
+bool shouldRenderTextures();
 
 void drawPixel(int x, int y, uint32_t color);
 void drawGrid(uint8_t cellSize, uint32_t color);

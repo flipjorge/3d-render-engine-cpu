@@ -34,10 +34,6 @@ matrix4_t projectionMatrix;
 
 Uint32 previousFrameTicks;
 
-bool renderVertices;
-bool renderLines;
-bool renderFaces;
-bool renderTextures;
 bool backCulling;
 
 light_t light;
@@ -65,10 +61,7 @@ void setupScene()
     
     previousFrameTicks = SDL_GetTicks();
 
-    renderVertices = false;
-    renderLines = false;
-    renderFaces = false;
-    renderTextures = true;
+    setRenderMode(RENDER_MODE_TEXTURED);
     backCulling = true;
 
     light = (light_t){
@@ -100,21 +93,29 @@ void processInput()
         break;
 
     case SDL_KEYDOWN:
-        if(event.key.keysym.sym == SDLK_v)
+        if(event.key.keysym.sym == SDLK_1)
         {
-            renderVertices = !renderVertices;
+            setRenderMode(RENDER_MODE_VERTEX);
         }
-        if(event.key.keysym.sym == SDLK_l)
+        if(event.key.keysym.sym == SDLK_2)
         {
-            renderLines = !renderLines;
+            setRenderMode(RENDER_MODE_VERTEX_WIREFRAME);
         }
-        if(event.key.keysym.sym == SDLK_f)
+        if(event.key.keysym.sym == SDLK_3)
         {
-            renderFaces = !renderFaces;
+            setRenderMode(RENDER_MODE_FILL_TRIANGLE);
         }
-        if(event.key.keysym.sym == SDLK_t)
+        if(event.key.keysym.sym == SDLK_4)
         {
-            renderTextures = !renderTextures;
+            setRenderMode(RENDER_MODE_FILL_TRIANGLE_WIREFRAME);
+        }
+        if(event.key.keysym.sym == SDLK_5)
+        {
+            setRenderMode(RENDER_MODE_TEXTURED);
+        }
+        if(event.key.keysym.sym == SDLK_6)
+        {
+            setRenderMode(RENDER_MODE_TEXTURED_WIREFRAME);
         }
         if(event.key.keysym.sym == SDLK_b)
         {
@@ -289,7 +290,7 @@ void render()
     {
         triangle_t triangle = trianglesToRender[i];
 
-        if(renderVertices)
+        if(shouldRenderVertex())
         {
             for (size_t j = 0; j < 3; j++)
             {
@@ -298,7 +299,7 @@ void render()
             }
         }
 
-        if(renderFaces)
+        if(shouldRenderFillTriangles())
         {
             drawFilledTriangle(
                 triangle.points[0].x,
@@ -317,7 +318,7 @@ void render()
             );
         }
 
-        if(renderTextures)
+        if(shouldRenderTextures())
         {
             drawTexturedTriangle(
                 triangle.points[0].x,
@@ -342,7 +343,7 @@ void render()
             );
         }
 
-        if(renderLines)
+        if(shouldRenderWireframe())
         {
             drawTriangle(
                 triangle.points[0].x,

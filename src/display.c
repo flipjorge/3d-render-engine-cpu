@@ -13,6 +13,8 @@ static const int windowHeight = 600;
 static uint32_t* colorBuffer = NULL;
 static float* depthBuffer = NULL;
 
+static int renderMode;
+
 void initializeWindow(bool* isRunning)
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -102,6 +104,41 @@ void clearDepthBuffer()
     {
         depthBuffer[i] = 1.0;
     }
+}
+
+int getRenderMode()
+{
+    return renderMode;
+}
+
+void setRenderMode(int mode)
+{
+    renderMode = mode;
+}
+
+bool shouldRenderVertex()
+{
+    return renderMode == RENDER_MODE_VERTEX
+        || renderMode == RENDER_MODE_VERTEX_WIREFRAME;
+}
+
+bool shouldRenderWireframe()
+{
+    return renderMode == RENDER_MODE_VERTEX_WIREFRAME
+        || renderMode == RENDER_MODE_FILL_TRIANGLE_WIREFRAME
+        || renderMode == RENDER_MODE_TEXTURED_WIREFRAME;
+}
+
+bool shouldRenderFillTriangles()
+{
+    return renderMode == RENDER_MODE_FILL_TRIANGLE
+        || renderMode == RENDER_MODE_FILL_TRIANGLE_WIREFRAME;
+}
+
+bool shouldRenderTextures()
+{
+    return renderMode == RENDER_MODE_TEXTURED
+        || renderMode == RENDER_MODE_TEXTURED_WIREFRAME;
 }
 
 void drawPixel(int x, int y, uint32_t color)
