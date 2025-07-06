@@ -6,7 +6,6 @@
 #include "vector.h"
 #include "projection.h"
 #include "cube.h"
-#include "obj.h"
 #include "face.h"
 #include "matrix.h"
 #include "light.h"
@@ -25,12 +24,11 @@
 
 bool isRunning = false;
 
-mesh_t** meshes = NULL;
 triangle_t trianglesToRender[MAX_TRIANGLES];
 int numberTrianglesToRender = 0;
 
-mesh_t cube;
-mesh_t piramid;
+mesh_t* cube;
+mesh_t* piramid;
 
 matrix4_t projectionMatrix;
 
@@ -53,12 +51,8 @@ plane_t frustumPlanes[FRUSTUM_NUM_PLANES];
 
 void setupScene()
 {
-    // createCube(&cube, 2, (vector3_t){ 0, 0, 0 });
-    loadMeshFromObj(&cube, "./assets/cube.obj"); 
-    loadMeshFromObj(&piramid, "./assets/piramid.obj"); 
-
-    array_push(meshes, &cube);
-    array_push(meshes, &piramid);
+    cube = loadMesh("./assets/cube.obj");
+    piramid = loadMesh("./assets/piramid.obj");
 
     float aspectY = (float)getWindowHeight() / (float)getWindowWidth();
     float aspectX = (float)getWindowWidth() / (float)getWindowHeight();
@@ -91,9 +85,7 @@ void setupScene()
 
 void clearScene() {
     upng_free(png);
-    freeMesh(&cube);
-    freeMesh(&piramid);
-    if(meshes) array_free(meshes);
+    freeAllMeshes();
 }
 
 void processInput()
@@ -175,25 +167,25 @@ void update()
 
     float rotationIncrement = 1 * frameTimeSeconds;
 
-    cube.position = (vector3_t){ 0, 0, 30 };
+    cube->position = (vector3_t){ 0, 0, 30 };
     // cube.rotation = vector3Sum( cube.rotation, (vector3_t){ rotationIncrement, rotationIncrement, rotationIncrement } );
-    cube.scale = (vector3_t){ 2, 2, 2};
+    cube->scale = (vector3_t){ 2, 2, 2};
 
-    piramid.position = (vector3_t){ 0, 10, 30 };
+    piramid->position = (vector3_t){ 0, 10, 30 };
     // piramid.rotation = vector3Sum( piramid.rotation, (vector3_t){ 0, rotationIncrement, 0 } );
-    piramid.scale = (vector3_t){ 2, 2, 2 };
+    piramid->scale = (vector3_t){ 2, 2, 2 };
 
     vector3_t eye = camera.position;
     vector3_t target = { camera.position.x, camera.position.y, camera.position.z + 1 };
     vector3_t up = { 0, 1, 0 };
     matrix4_t viewMatrix = matrix4LookAt(&eye, &target, &up);
 
-    const int numMeshes = array_length(meshes);
+    const int numMeshes = getNumberMeshes();
     numberTrianglesToRender = 0;
 
     for (size_t m = 0; m < numMeshes; m++)
     {
-        mesh_t* mesh = meshes[m];
+        mesh_t* mesh = getMesh(m);
         matrix4_t transformMatrix = getMeshTransformMatrix(mesh);
 
         const int numFaces = array_length(mesh->faces);

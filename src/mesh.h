@@ -14,7 +14,10 @@ typedef struct {
     vector3_t scale;
 } mesh_t;
 
+mesh_t* loadMesh(char* filename);
+int getNumberMeshes();
+mesh_t* getMesh(int index);
 matrix4_t getMeshTransformMatrix(const mesh_t* mesh);
-void freeMesh(mesh_t* mesh);
+void freeAllMeshes();
 
 #endif
