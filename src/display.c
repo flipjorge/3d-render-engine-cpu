@@ -14,6 +14,7 @@ static uint32_t* colorBuffer = NULL;
 static float* depthBuffer = NULL;
 
 static int renderMode;
+static int cullingMode;
 
 void initializeWindow(bool* isRunning)
 {
@@ -139,6 +140,21 @@ bool shouldRenderTextures()
 {
     return renderMode == RENDER_MODE_TEXTURED
         || renderMode == RENDER_MODE_TEXTURED_WIREFRAME;
+}
+
+int getCullingMode()
+{
+    return cullingMode;
+}
+
+void setCullingMode(int mode)
+{
+    cullingMode = mode;
+}
+
+void setCullingNextMode()
+{
+    cullingMode = (cullingMode + 1) % 2;
 }
 
 void drawPixel(int x, int y, uint32_t color)

@@ -13,6 +13,12 @@ enum RenderMode
     RENDER_MODE_TEXTURED_WIREFRAME
 };
 
+enum CullingMode
+{
+    CULLING_MODE_NONE,
+    CULLING_MODE_BACK
+};
+
 void initializeWindow(bool* isRunning);
 void destroyWindow();
 
@@ -26,6 +32,10 @@ void clearDepthBuffer();
 
 int getRenderMode();
 void setRenderMode(int mode);
+
+int getCullingMode();
+void setCullingMode(int mode);
+void setCullingNextMode();
 
 bool shouldRenderVertex();
 bool shouldRenderWireframe();

@@ -34,8 +34,6 @@ matrix4_t projectionMatrix;
 
 Uint32 previousFrameTicks;
 
-bool backCulling;
-
 light_t light;
 
 uint32_t* texture = NULL;
@@ -62,7 +60,7 @@ void setupScene()
     previousFrameTicks = SDL_GetTicks();
 
     setRenderMode(RENDER_MODE_TEXTURED);
-    backCulling = true;
+    setCullingMode(CULLING_MODE_BACK);
 
     light = (light_t){
         (vector3_t){ 0, 0, 1 }
@@ -117,9 +115,9 @@ void processInput()
         {
             setRenderMode(RENDER_MODE_TEXTURED_WIREFRAME);
         }
-        if(event.key.keysym.sym == SDLK_b)
+        if(event.key.keysym.sym == SDLK_c)
         {
-            backCulling = !backCulling;
+            setCullingNextMode();
         }
         if (event.key.keysym.sym == SDLK_ESCAPE)
         {
@@ -216,7 +214,7 @@ void update()
                 vector4to3(transformedVertices[2])
             };
 
-            if(backCulling && !isFaceFacingCamera(camera.position, verticesForBackCulling)) continue;
+            if(getCullingMode() == CULLING_MODE_NONE && !isFaceFacingCamera(camera.position, verticesForBackCulling)) continue;
 
             polygon_t polygon = createPolygonFromTriangle(
                 vector4to3(transformedVertices[0]),
