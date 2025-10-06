@@ -3,6 +3,11 @@
 #include <stdio.h>
 #include "matrix.h"
 
+// Creates a 4x4 identity matrix:
+// |1 0 0 0|
+// |0 1 0 0|
+// |0 0 1 0|
+// |0 0 0 1|
 matrix4_t matrix4Identity()
 {
     return (matrix4_t){{
@@ -13,6 +18,11 @@ matrix4_t matrix4Identity()
     }};
 }
 
+// Creates a scale matrix by placing scale factors on the diagonal:
+// |sx  0  0  0|
+// |0  sy  0  0|
+// |0   0 sz  0|
+// |0   0  0  1|
 matrix4_t matrix4MakeScale(const vector3_t* scale)
 {
     matrix4_t matrix = matrix4Identity();
@@ -24,6 +34,11 @@ matrix4_t matrix4MakeScale(const vector3_t* scale)
     return matrix;
 }
 
+// Creates a translation matrix by placing translation values in the fourth column:
+// |1  0  0  tx|
+// |0  1  0  ty|
+// |0  0  1  tz|
+// |0  0  0   1|
 matrix4_t matrix4MakeTranslation(const vector3_t* translation)
 {
     matrix4_t matrix = matrix4Identity();
@@ -35,6 +50,11 @@ matrix4_t matrix4MakeTranslation(const vector3_t* translation)
     return matrix;
 }
 
+// Creates a rotation matrix around X axis using trigonometry:
+// |1   0    0   0|
+// |0  cos -sin  0|
+// |0  sin  cos  0|
+// |0   0    0   1|
 matrix4_t matrix4MakeRotationX(float angle)
 {
     float c = cos(angle);
@@ -48,6 +68,11 @@ matrix4_t matrix4MakeRotationX(float angle)
     return m;
 }
 
+// Creates a rotation matrix around Y axis using trigonometry:
+// | cos  0  sin  0|
+// |  0   1   0   0|
+// |-sin  0  cos  0|
+// |  0   0   0   1|
 matrix4_t matrix4MakeRotationY(float angle)
 {
     float c = cos(angle);
@@ -61,6 +86,11 @@ matrix4_t matrix4MakeRotationY(float angle)
     return m;
 }
 
+// Creates a rotation matrix around Z axis using trigonometry:
+// |cos -sin  0  0|
+// |sin  cos  0  0|
+// | 0    0   1  0|
+// | 0    0   0  1|
 matrix4_t matrix4MakeRotationZ(float angle)
 {
     float c = cos(angle);
@@ -74,6 +104,10 @@ matrix4_t matrix4MakeRotationZ(float angle)
     return m;
 }
 
+// Creates a combined rotation matrix from Euler angles (XYZ order)
+// Final matrix = Rz * Ry * Rx (multiplication order matters!)
+// This creates a rotation matrix that applies X rotation first,
+// then Y rotation, and finally Z rotation
 matrix4_t matrix4MakeRotation(const vector3_t* rotation)
 {
     matrix4_t matrix = matrix4Identity();
@@ -110,6 +144,11 @@ matrix4_t matrix4MakeRotation(const vector3_t* rotation)
     return matrix;
 }
 
+// Creates a perspective projection matrix:
+// [aspect/tan(fov/2)    0             0              0    ]
+// [     0          1/tan(fov/2)       0              0    ]
+// [     0               0        far/(far-near)  -far*near/(far-near)]
+// [     0               0             1              0    ]
 matrix4_t matrix4MakePerspective(float fov, float aspect, float near, float far)
 {
     matrix4_t matrix = {{{ 0 }}};
@@ -122,6 +161,10 @@ matrix4_t matrix4MakePerspective(float fov, float aspect, float near, float far)
     return matrix;
 }
 
+// Multiplies a matrix by a vector using dot product:
+// For each row of the matrix, compute:
+// result[i] = row[i].x * vector.x + row[i].y * vector.y + 
+//             row[i].z * vector.z + row[i].w * vector.w
 vector4_t matrix4MultiplyVector4(const matrix4_t* matrix, const vector4_t* vector)
 {
     vector4_t result = {0};
@@ -149,6 +192,9 @@ vector4_t matrix4MultiplyVector4(const matrix4_t* matrix, const vector4_t* vecto
     return result;
 }
 
+// Multiplies two matrices using row-column multiplication:
+// For each element [i][j] in result matrix:
+// result[i][j] = sum(matrix1[i][k] * matrix2[k][j]) for k = 0 to 3
 matrix4_t matrix4MultiplyMatrix4(const matrix4_t* matrix1, const matrix4_t* matrix2)
 {
     matrix4_t matrix = matrix4Identity();
@@ -169,6 +215,9 @@ matrix4_t matrix4MultiplyMatrix4(const matrix4_t* matrix1, const matrix4_t* matr
     return matrix;
 }
 
+// Performs perspective projection and divides by w component
+// This creates normalized device coordinates (-1 to 1)
+// The w-divide is what creates the perspective effect
 vector4_t matrix4MultiplyVector4Project(const matrix4_t* projection, const vector4_t* vector)
 {
     vector4_t result = matrix4MultiplyVector4(projection, vector);
@@ -182,6 +231,9 @@ vector4_t matrix4MultiplyVector4Project(const matrix4_t* projection, const vecto
     return result;
 }
 
+// Combines scale, rotation, and translation matrices in TRS order
+// Final matrix = Translation * Rotation * Scale
+// This order ensures proper transformation hierarchy
 matrix4_t matrix4TRS(const matrix4_t* scale, const matrix4_t* rotation, const matrix4_t* translation)
 {
     matrix4_t matrix = matrix4MultiplyMatrix4(rotation, scale);
@@ -189,6 +241,12 @@ matrix4_t matrix4TRS(const matrix4_t* scale, const matrix4_t* rotation, const ma
     return matrix;
 }
 
+// Creates a view matrix for camera positioning:
+// 1. Calculate forward (z) vector from target to eye
+// 2. Calculate right (x) vector from up and forward
+// 3. Calculate up (y) vector from forward and right
+// 4. Create orthonormal basis matrix and include translation
+// Final matrix transforms world space to view space
 matrix4_t matrix4LookAt(const vector3_t* eye, const vector3_t* target, const vector3_t* up)
 {
     vector3_t z = vector3Sub(*target, *eye);

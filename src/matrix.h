@@ -1,7 +1,6 @@
 #ifndef MATRIX
 #define MATRIX
 
-
 #include "vector.h"
 
 typedef struct
