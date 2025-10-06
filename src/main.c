@@ -43,6 +43,12 @@ camera_t camera;
 
 plane_t frustumPlanes[FRUSTUM_NUM_PLANES];
 
+// Sets up the initial state of the scene.
+// This function is called once at the start of the application. It handles:
+// - Loading assets like 3D models (.obj) and textures (.png).
+// - Setting up the projection matrix based on window dimensions and field of view.
+// - Initializing the clipping planes of the view frustum.
+// - Configuring default rendering modes, lighting, and camera position.
 void setupScene()
 {
     cube = loadMesh("./assets/cube.obj");
@@ -74,11 +80,18 @@ void setupScene()
     };
 }
 
+// Frees all allocated resources before the application closes.
+// This function is called once upon exiting to prevent memory leaks.
 void clearScene() {
     upng_free(png);
     freeAllMeshes();
 }
 
+// Handles all user input for the current frame.
+// It polls for SDL events and updates application state accordingly. This includes:
+// - Closing the window.
+// - Toggling rendering and culling modes.
+// - Moving the camera based on keyboard input.
 void processInput()
 {
     SDL_Event event;
@@ -151,8 +164,12 @@ void processInput()
     }
 }
 
+// This is the core of the rendering pipeline, executed once per frame.
+// It processes all game objects from 3D space to 2D screen space triangles.
 void update()
 {
+    // --- 1. Frame Timing ---
+    // Caps the frame rate to the target value.
     int frameTime = SDL_GetTicks() - previousFrameTicks;
     
     if(frameTime < TARGET_FRAME_TIME)
@@ -164,6 +181,9 @@ void update()
     float frameTimeSeconds = frameTime / 1000.0f;
     previousFrameTicks = SDL_GetTicks();
 
+    // --- 2. Object & Camera Updates ---
+    // Updates object transformations (position, rotation, scale).
+    // Creates the view matrix based on the camera's current position and orientation.
     float rotationIncrement = 1 * frameTimeSeconds;
 
     cube->position = (vector3_t){ 0, 0, 30 };
@@ -182,6 +202,8 @@ void update()
     const int numMeshes = getNumberMeshes();
     numberTrianglesToRender = 0;
 
+    // --- 3. Geometry Processing Loop (per-mesh, per-face) ---
+    // This loop iterates through every triangle of every mesh in the scene.
     for (size_t m = 0; m < numMeshes; m++)
     {
         mesh_t* mesh = getMesh(m);
@@ -198,6 +220,8 @@ void update()
             faceVertices[1] = mesh->vertices[face.b - 1];
             faceVertices[2] = mesh->vertices[face.c - 1];
             
+            // --- 3a. Model and View Transformation ---
+            // Transforms vertices from model space -> world space -> camera space.
             vector4_t transformedVertices[3];
 
             for (size_t v = 0; v < 3; v++)
@@ -208,6 +232,8 @@ void update()
                 transformedVertices[v] = transformedVertice;
             }
 
+            // --- 3b. Back-face Culling ---
+            // Checks if the triangle is facing away from the camera and discards it if so.
             vector3_t verticesForBackCulling[3] = {
                 vector4to3(transformedVertices[0]),
                 vector4to3(transformedVertices[1]),
@@ -216,6 +242,9 @@ void update()
 
             if(getCullingMode() == CULLING_MODE_NONE && !isFaceFacingCamera(camera.position, verticesForBackCulling)) continue;
 
+            // --- 3c. Clipping ---
+            // Clips the triangle against the 6 planes of the view frustum. This may result
+            // in the triangle being discarded or converted into multiple new triangles.
             polygon_t polygon = createPolygonFromTriangle(
                 vector4to3(transformedVertices[0]),
                 vector4to3(transformedVertices[1]),
@@ -232,6 +261,8 @@ void update()
 
             trianglesFromPolygon(&polygon, trianglesAfterClipping, &numberTrianglesAfterClipping);
 
+            // --- 3d. Projection & Screen Mapping ---
+            // For each triangle that survived clipping, this block projects it to the screen.
             for (int t = 0; t < numberTrianglesAfterClipping; t++) {
                 triangle_t triangleAfterClipping = trianglesAfterClipping[t];
 
@@ -239,6 +270,7 @@ void update()
 
                 for (size_t v = 0; v < 3; v++)
                 {
+                    // Applies projection matrix and performs viewport transformation to screen coordinates.
                     vector4_t projectedVertex = matrix4MultiplyVector4Project(&projectionMatrix, &triangleAfterClipping.points[v]);
                     
                     projectedVertex.x *= getWindowWidth() / 2.0;
@@ -255,6 +287,9 @@ void update()
                     triangle.points[v].w = projectedVertex.w;
                 }
 
+                // --- 3e. Lighting & Final Assembly ---
+                // Calculates the triangle's color based on light intensity and assembles the
+                // final triangle data to be sent to the rasterizer.
                 vector3_t verticesForIntensityFactor[3] = {
                     vector4to3(transformedVertices[0]),
                     vector4to3(transformedVertices[1]),
@@ -277,13 +312,20 @@ void update()
     }
 }
 
+// Renders the final 2D triangles to the screen.
+// This function is called after the update loop has processed all geometry.
 void render()
 {
+    // --- 1. Clear Buffers ---
+    // Resets the color and depth buffers for the new frame.
     clearColorBuffer(0x000000FF);
     clearDepthBuffer();
 
     drawGrid(40, 0x333333FF);
 
+    // --- 2. Rasterization Loop ---
+    // Iterates through the array of screen-space triangles and draws them based on the
+    // current rendering mode (e.g., wireframe, filled, textured).
     for (size_t i = 0; i < numberTrianglesToRender; i++)
     {
         triangle_t triangle = trianglesToRender[i];
@@ -355,13 +397,17 @@ void render()
         }
     }
     
+    // --- 3. Present Frame ---
+    // Copies the software color buffer to the screen, making the new frame visible.
     renderColorBuffer();
 }
 
 
+// The main entry point of the application.
+// It contains the main game loop that drives the entire program.
 int main()
 {
-    initializeWindow(&isRunning);
+    initializeWindow(&isRunning); 
     setupScene();
 
     while (isRunning)
