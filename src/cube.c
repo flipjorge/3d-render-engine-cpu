@@ -37,6 +37,16 @@ face_t cubeFaces[NUMBER_FACES] = {
     { 4, 5, 8, {1, 0}, {1, 1}, {0, 1} },
 };
 
+// Procedurally generates a cube mesh and initializes its properties.
+// This function provides a way to create a basic geometric primitive without needing to load a file.
+// It's part of the asset creation stage, populating a `mesh_t` structure with hardcoded vertex and face data.
+//
+// The process involves:
+// 1. Scaling the 8 vertices of a unit cube template by the given `size`.
+// 2. Copying the 12 predefined triangular faces into the mesh's face array. These faces include
+//    hardcoded UV coordinates for texture mapping.
+// 3. Setting the mesh's initial position in world space.
+// 4. Initializing the mesh's rotation to zero and scale to one.
 void createCube(mesh_t* mesh, float size, vector3_t position)
 {
     mesh->vertices = NULL;
