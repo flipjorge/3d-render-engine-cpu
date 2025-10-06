@@ -4,6 +4,9 @@
 #include <SDL2/SDL.h>
 #include "vector.h"
 
+// Represents a directional light source in the scene.
+// A directional light is assumed to be infinitely far away, so all its rays are parallel.
+// This is a simple and efficient way to simulate a distant light source like the sun.
 typedef struct
 {
     vector3_t direction;
