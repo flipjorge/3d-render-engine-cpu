@@ -2,6 +2,16 @@
 #include "clipping.h"
 #include "triangle.h"
 
+// Initializes the six planes of the view frustum in camera space.
+// This is part of the setup for the clipping stage. The frustum is a pyramid-like shape
+// that defines the visible volume of the scene.
+//
+// The math involves using the horizontal (fovX) and vertical (fovY) fields of view to
+// calculate the normal vectors for the left, right, top, and bottom planes. These normals
+// are calculated using sine and cosine of half the FOV angles to define planes that pass
+// through the origin (the camera's position) and are angled correctly. The near and far
+// planes are simpler, being parallel to the XY plane at zNear and zFar respectively.
+// All normals point *inside* the frustum volume.
 void initFrustumPlane(plane_t* frustumPlanes, float fovX, float fovY, float zNear, float zFar)
 {
     float cosHalfFovX = cos(fovX / 2);
@@ -41,6 +51,10 @@ void initFrustumPlane(plane_t* frustumPlanes, float fovX, float fovY, float zNea
     frustumPlanes[FAR_FRUSTUM_PLANE].normal.z = -1;
 }
 
+// Converts a triangle into a polygon structure.
+// This is the first step in the clipping pipeline for a given triangle. The polygon
+// structure is more flexible than a triangle, as the number of vertices can change
+// during the clipping process.
 polygon_t createPolygonFromTriangle(
     vector3_t v0, vector3_t v1, vector3_t v2,
     texture_t uv0, texture_t uv1, texture_t uv2)
@@ -53,10 +67,28 @@ polygon_t createPolygonFromTriangle(
     return polygon;
 }
 
+// Linearly interpolates between two float values.
+// This is a helper function used during clipping to find the exact intersection point
+// of a polygon edge with a frustum plane. It's used for both vertex coordinates and
+// texture coordinates.
+// Math: result = a + t * (b - a)
 float floatLerp(float a, float b, float t) {
     return a + t * (b - a);
 }
 
+// Clips a polygon against a single plane using the Sutherland-Hodgman algorithm.
+// This function is the core of the clipping process. It iterates through the polygon's
+// edges and outputs a new set of vertices that are all on the "inside" of the plane.
+//
+// For each edge (from a previous to a current vertex):
+// 1. It determines if the vertices are inside or outside the plane by checking the sign
+//    of the dot product between the vector from the plane's point to the vertex and the
+//    plane's normal. A positive dot product means the vertex is inside.
+// 2. If an edge crosses the plane boundary, it calculates the intersection point. The
+//    interpolation factor 't' is found using the dot products: t = prev_dot / (prev_dot - current_dot).
+// 3. This 't' value is used to linearly interpolate the vertex position and UV coordinates
+//    to find the new vertex at the intersection.
+// 4. A new list of "inside" vertices is generated, forming the clipped polygon.
 void clipPolygonAgainstPlane(polygon_t* polygon, const plane_t* plane)
 {
     vector3_t insideVertices[MAX_NUM_POLY_VERTICES];
@@ -119,6 +151,11 @@ void clipPolygonAgainstPlane(polygon_t* polygon, const plane_t* plane)
     polygon->numVertices = numInsideVertices;
 }
 
+// Clips a polygon against all six planes of the view frustum.
+// This function orchestrates the clipping process by calling `clipPolygonAgainstPlane`
+// sequentially for each of the six frustum planes. The output polygon from one clipping
+// stage becomes the input for the next. If the polygon is ever reduced to fewer than
+// three vertices, it is effectively discarded.
 void clipPolygon(polygon_t* polygon, const plane_t* frustumPlanes)
 {
     clipPolygonAgainstPlane(polygon, &frustumPlanes[LEFT_FRUSTUM_PLANE]);
@@ -129,6 +166,16 @@ void clipPolygon(polygon_t* polygon, const plane_t* frustumPlanes)
     clipPolygonAgainstPlane(polygon, &frustumPlanes[FAR_FRUSTUM_PLANE]);
 }
 
+// Converts a final (clipped) polygon back into one or more triangles.
+// After a polygon has been clipped against all frustum planes, it needs to be
+// converted back into triangles to be rendered. This is done using a simple
+// "triangle fan" method, where the first vertex of the polygon is used as a common
+// vertex for all the new triangles.
+//
+// For a polygon with N vertices, it creates (N - 2) triangles.
+// Triangle 1: (v0, v1, v2)
+// Triangle 2: (v0, v2, v3)
+// ... and so on.
 void trianglesFromPolygon(const polygon_t* polygon, triangle_t* triangles, int* numberTriangles)
 {
     for (int i = 0; i < polygon->numVertices - 2; i++)
