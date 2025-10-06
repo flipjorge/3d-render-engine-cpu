@@ -6,6 +6,8 @@
 #include "triangle.h"
 #include "matrix.h"
 
+// Represents a 3D object in the scene, containing its geometry and transformation data.
+// This is a central data structure for any renderable object in the project.
 typedef struct {
     vector3_t* vertices;
     face_t* faces;
