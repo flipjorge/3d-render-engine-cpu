@@ -16,6 +16,10 @@ static float* depthBuffer = NULL;
 static int renderMode;
 static int cullingMode;
 
+// Initializes the SDL window, renderer, and software buffers.
+// This is the entry point for the display system, setting up the main window where all
+// rendering will be presented. It also allocates memory for the color and depth buffers,
+// which are the core components of the software rasterizer.
 void initializeWindow(bool* isRunning)
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -56,6 +60,10 @@ void initializeWindow(bool* isRunning)
     *isRunning = true;
 }
 
+// Frees all allocated resources and shuts down SDL.
+// This is the cleanup function, called at the end of the program to release memory used
+// by the color and depth buffers and to properly close the SDL window and renderer,
+// preventing memory leaks.
 void destroyWindow() {
     free(colorBuffer);
     free(depthBuffer);
@@ -64,16 +72,25 @@ void destroyWindow() {
     SDL_Quit();
 }
 
+// Returns the width of the main application window.
+// A utility function to provide the window's width to other parts of the engine,
+// such as the projection matrix calculation and viewport transformation.
 int getWindowWidth()
 {
     return windowWidth;
 }
 
+// Returns the height of the main application window.
+// A utility function to provide the window's height to other parts of the engine,
+// such as the projection matrix calculation and viewport transformation.
 int getWindowHeight()
 {
     return windowHeight;
 }
 
+// Clears the color buffer to a specified color.
+// This is called at the beginning of each frame's render loop to reset the canvas
+// to a solid background color before any new geometry is drawn.
 void clearColorBuffer(uint32_t color)
 {
     for (size_t i = 0; i < windowWidth * windowHeight; i++)
@@ -82,6 +99,9 @@ void clearColorBuffer(uint32_t color)
     }
 }
 
+// Copies the contents of the software color buffer to the screen.
+// After all drawing for a frame is complete, this function uses SDL to update the
+// screen with the final image stored in the `colorBuffer`, making the rendered frame visible.
 void renderColorBuffer()
 {
     SDL_UpdateTexture(
@@ -99,6 +119,10 @@ void renderColorBuffer()
     SDL_RenderPresent(renderer);
 }
 
+// Resets the depth buffer to its maximum value.
+// The depth buffer is crucial for correct 3D occlusion (Z-buffering). This function is
+// called at the start of each frame to reset all depth values, ensuring that the first
+// pixel drawn at any location is considered the closest until a closer one is found.
 void clearDepthBuffer()
 {
     for (size_t i = 0; i < windowWidth * windowHeight; i++)
@@ -107,22 +131,30 @@ void clearDepthBuffer()
     }
 }
 
+// Returns the current rendering mode.
+// Used by the main render loop to decide which drawing functions to call (e.g., wireframe, filled, textured).
 int getRenderMode()
 {
     return renderMode;
 }
 
+// Sets the current rendering mode.
+// Allows the user to switch between different visualization styles at runtime.
 void setRenderMode(int mode)
 {
     renderMode = mode;
 }
 
+// Checks if vertex rendering is enabled.
+// A helper function for the main render loop.
 bool shouldRenderVertex()
 {
     return renderMode == RENDER_MODE_VERTEX
         || renderMode == RENDER_MODE_VERTEX_WIREFRAME;
 }
 
+// Checks if wireframe rendering is enabled.
+// A helper function for the main render loop.
 bool shouldRenderWireframe()
 {
     return renderMode == RENDER_MODE_VERTEX_WIREFRAME
@@ -130,33 +162,49 @@ bool shouldRenderWireframe()
         || renderMode == RENDER_MODE_TEXTURED_WIREFRAME;
 }
 
+// Checks if filled triangle rendering is enabled.
+// A helper function for the main render loop.
 bool shouldRenderFillTriangles()
 {
     return renderMode == RENDER_MODE_FILL_TRIANGLE
         || renderMode == RENDER_MODE_FILL_TRIANGLE_WIREFRAME;
 }
 
+// Checks if textured triangle rendering is enabled.
+// A helper function for the main render loop.
 bool shouldRenderTextures()
 {
     return renderMode == RENDER_MODE_TEXTURED
         || renderMode == RENDER_MODE_TEXTURED_WIREFRAME;
 }
 
+// Returns the current culling mode.
+// Used by the main update loop to decide whether to perform back-face culling.
 int getCullingMode()
 {
     return cullingMode;
 }
 
+// Sets the current culling mode.
+// Allows the user to enable or disable back-face culling.
 void setCullingMode(int mode)
 {
     cullingMode = mode;
 }
 
+// Toggles the culling mode between enabled and disabled.
+// A convenience function for user input to cycle through culling options.
 void setCullingNextMode()
 {
     cullingMode = (cullingMode + 1) % 2;
 }
 
+// Draws a single pixel to the color buffer at a specified screen coordinate.
+// This is the most fundamental drawing primitive. All other drawing functions
+// (lines, triangles, etc.) are built on top of this.
+//
+// The color buffer is a 1D array, so the 2D coordinates (x, y) must be converted
+// to a 1D index. The formula used is: index = (y * window_width) + x.
 void drawPixel(int x, int y, uint32_t color)
 {
     if(x > windowWidth || y > windowHeight) return;
@@ -164,6 +212,10 @@ void drawPixel(int x, int y, uint32_t color)
     colorBuffer[y * windowWidth + x] = color;
 }
 
+// Draws a grid pattern onto the color buffer.
+// A visual aid used for debugging and to give a sense of the ground plane in the scene.
+// It uses the modulo operator (%) to draw lines at regular intervals. A pixel is
+// drawn if its x or y coordinate is a multiple of `cellSize`.
 void drawGrid(uint8_t cellSize, uint32_t color)
 {
     for (size_t y = 0; y < windowHeight; y++)
@@ -178,6 +230,10 @@ void drawGrid(uint8_t cellSize, uint32_t color)
     }
 }
 
+// Draws a filled rectangle to the color buffer.
+// A basic 2D drawing primitive, used in this project to draw the small squares
+// that represent vertices when in vertex-rendering mode. It iterates through every
+// pixel from the starting (x, y) to (x + width, y + height) and calls `drawPixel`.
 void drawRectangle(int x, int y, int width, int height, uint32_t color)
 {
     for (size_t pixelY = y; pixelY < y + height; pixelY++)
@@ -189,6 +245,19 @@ void drawRectangle(int x, int y, int width, int height, uint32_t color)
     }
 }
 
+// Draws a line between two points using the Digital Differential Analyzer (DDA) algorithm.
+// This is a fundamental rasterization algorithm used to draw the edges of wireframe triangles.
+//
+// Math:
+// 1. Calculate the difference in x and y: deltaX = x1 - x0, deltaY = y1 - y0.
+// 2. Determine the number of steps needed by finding the dimension with the greater change:
+//    longestSideLength = max(|deltaX|, |deltaY|). This ensures the line is continuous.
+// 3. Calculate the increment for x and y for each step:
+//    xIncrement = deltaX / longestSideLength
+//    yIncrement = deltaY / longestSideLength
+//    One of these will be +/-1, and the other will be a value <= 1.
+// 4. Loop `longestSideLength` times, starting from (x0, y0), adding the increments at each
+//    step, and drawing a pixel at the rounded (currentX, currentY) position.
 void drawLine(int x0, int y0, int x1, int y1, uint32_t color)
 {
     int deltaX = x1 - x0;
@@ -210,6 +279,8 @@ void drawLine(int x0, int y0, int x1, int y1, uint32_t color)
     }
 }
 
+// Draws the outline of a triangle by calling `drawLine` for each of its three edges.
+// This is used for rendering wireframe modes.
 void drawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color)
 {
     drawLine(x0, y0, x1, y1, color);
@@ -217,6 +288,8 @@ void drawTriangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color
     drawLine(x2, y2, x0, y0, color);
 }
 
+// A utility function to swap the values of two integers.
+// Used internally by the triangle rasterization functions to sort vertices by their y-coordinate.
 void intSwap(int* a, int* b)
 {
     int temp = *a;
@@ -224,6 +297,8 @@ void intSwap(int* a, int* b)
     *b = temp;
 }
 
+// A utility function to swap the values of two floats.
+// Used internally by the textured triangle rasterization function to sort vertex attributes.
 void floatSwap(float* a, float* b)
 {
     float temp = *a;
@@ -231,6 +306,25 @@ void floatSwap(float* a, float* b)
     *b = temp;
 }
 
+// Calculates the barycentric weights (alpha, beta, gamma) for a point 'p' inside a triangle (a, b, c).
+// These weights are essential for interpolating attributes (like depth and texture coordinates)
+// across the surface of a triangle during rasterization.
+//
+// Math:
+// Any point 'p' inside a triangle can be expressed as a weighted average of its vertices:
+// p = α*a + β*b + γ*c, where α+β+γ=1.
+// The weights (α, β, γ) are the barycentric coordinates. They represent the ratio of the areas
+// of the sub-triangles formed by 'p' to the area of the main triangle 'abc'.
+//   α = Area(pbc) / Area(abc)
+//   β = Area(apc) / Area(abc)
+//   γ = Area(abp) / Area(abc)
+// The code calculates these areas using a 2D cross-product-like formula. For two vectors
+// v1=(x1, y1) and v2=(x2, y2), the value (x1*y2 - x2*y1) is twice the signed area of the
+// triangle they form with the origin.
+// `areaParallelogramABC` is twice the area of triangle 'abc'.
+// `alpha` is computed using the area of sub-triangle 'pbc'.
+// `beta` is computed using the area of sub-triangle 'apc'.
+// `gamma` is then found using `1 - alpha - beta`.
 vector3_t barycentricWeights(vector2_t a, vector2_t b, vector2_t c, vector2_t p) {
     
     vector2_t ac = vector2Sub(c, a);
@@ -249,6 +343,19 @@ vector3_t barycentricWeights(vector2_t a, vector2_t b, vector2_t c, vector2_t p)
     return weights;
 }
 
+// Draws a single pixel of a filled triangle, performing a depth test.
+// For each pixel inside a triangle, this function interpolates the depth (from the w-component)
+// and compares it with the value in the depth buffer. The pixel is only drawn if it is
+// closer to the camera than what is already in the buffer.
+//
+// Math:
+// 1. Barycentric weights (α, β, γ) are calculated for the pixel's center.
+// 2. For perspective-correct interpolation, we interpolate the reciprocal of the w-component:
+//    1/w_interpolated = α * (1/w_a) + β * (1/w_b) + γ * (1/w_c)
+//    This `w_interpolated` value is proportional to the true z-depth of the pixel in camera space.
+// 3. The depth buffer stores values from 0 (near) to 1 (far). The interpolated value is
+//    compared against the buffer. If it's smaller (closer), the pixel is drawn, and the
+//    depth buffer is updated with the new, closer depth value.
 void drawTrianglePixel(
     int x, int y, uint32_t color,
     vector4_t pointA, vector4_t pointB, vector4_t pointC
@@ -276,6 +383,23 @@ void drawTrianglePixel(
     }
 }
 
+// Draws a single pixel of a textured triangle, performing depth testing and perspective-correct interpolation.
+// This function calculates the correct texture coordinate (UV) for a pixel using barycentric
+// interpolation that is corrected for perspective distortion by using the w-component of the vertices.
+// It then performs a depth test before sampling the texture and drawing the final pixel.
+//
+// Math:
+// 1. Barycentric weights (α, β, γ) are calculated for the pixel's center.
+// 2. To find the correct texture coordinates (u, v) for the pixel, we must perform
+//    perspective-correct interpolation. Simple linear interpolation of UVs would cause
+//    visual artifacts (warping). Instead, we interpolate u/w and v/w:
+//    u_persp = α*(u_a/w_a) + β*(u_b/w_b) + γ*(u_c/w_c)
+//    v_persp = α*(v_a/w_a) + β*(v_b/w_b) + γ*(v_c/w_c)
+//    1/w_persp = α*(1/w_a) + β*(1/w_b) + γ*(1/w_c)
+// 3. The final UV coordinates are found by dividing by the interpolated 1/w:
+//    u_final = u_persp / (1/w_persp)
+//    v_final = v_persp / (1/w_persp)
+// 4. A depth test is performed using `w_persp` before the texel is sampled and drawn.
 void drawTexel(
     int x, int y, uint32_t* texture,
     vector4_t pointA, vector4_t pointB, vector4_t pointC,
@@ -312,6 +436,23 @@ void drawTexel(
     }
 }
 
+// Renders a flat-shaded, filled triangle using a scanline algorithm.
+// The function first sorts the triangle's vertices by their y-coordinate. It then splits the
+// triangle into two parts (top and bottom flat) and iterates through the scanlines (rows of pixels)
+// for each part, drawing horizontal lines of pixels. Depth is checked for each pixel using `drawTrianglePixel`.
+//
+// Math:
+// 1. The vertices are sorted vertically (y0 <= y1 <= y2). This simplifies rasterization.
+// 2. The triangle is split horizontally at vertex y1, creating a "flat-bottom" triangle
+//    (p0, p1, and an intermediate point on the p0-p2 edge) and a "flat-top" triangle
+//    (p1, p2, and the same intermediate point).
+// 3. For each part, the algorithm iterates from the top y to the bottom y (scanline by scanline).
+// 4. For each scanline `y`, the start (x_start) and end (x_end) x-coordinates of the
+//    triangle's intersection with that scanline are calculated using linear interpolation
+//    along the triangle's edges. The inverse slopes of the edges are used for efficiency:
+//    x = x_start + (y - y_start) * (dx/dy).
+// 5. A horizontal line is drawn from x_start to x_end. For each pixel in this line,
+//    `drawTrianglePixel` is called to perform a depth test.
 void drawFilledTriangle(
     int x0, int y0, int z0, int w0,
     int x1, int y1, int z1, int w1,
@@ -389,6 +530,18 @@ void drawFilledTriangle(
     }
 }
 
+// Renders a textured triangle using a scanline algorithm with perspective-correct texturing.
+// Similar to `drawFilledTriangle`, it sorts vertices and uses a scanline approach. However, for
+// each pixel, it calls `drawTexel`, which performs perspective-correct interpolation of UV
+// coordinates before sampling the texture and drawing the pixel, ensuring the texture does not
+// appear warped on surfaces angled away from the camera.
+//
+// Math:
+// The overall approach is the same as `drawFilledTriangle` (vertex sorting, splitting into
+// two sub-triangles, iterating scanlines). The key difference is that instead of drawing
+// a solid color, it calls `drawTexel` for each pixel along the horizontal scanline.
+// `drawTexel` handles the complex mathematics of perspective-correct texture coordinate
+// interpolation and depth testing, as described in its own documentation block.
 void drawTexturedTriangle(
     int x0, int y0, int z0, int w0, float u0, float v0,
     int x1, int y1, int z1, int w1, float u1, float v1,
