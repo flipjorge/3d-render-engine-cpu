@@ -1,17 +1,33 @@
 #ifndef VECTOR
 #define VECTOR
 
+// Represents a 2D vector with x and y components.
+// In 3D rendering, this is commonly used for:
+// - Texture coordinates (UV mapping) to map 2D textures onto 3D models.
+// - Screen-space coordinates for positioning elements on the 2D display.
 typedef struct {
     float x;
     float y;
 } vector2_t;
 
+// Represents a 3D vector with x, y, and z components.
+// This is a fundamental data structure in 3D graphics used for:
+// - Positions of vertices in 3D space.
+// - Directional vectors (e.g., surface normals, light direction).
+// - Storing RGB color data.
 typedef struct {
     float x;
     float y;
     float z;
 } vector3_t;
 
+// Represents a 4D vector, primarily used for homogeneous coordinates.
+// Homogeneous coordinates allow affine transformations (like translation) to be
+// represented by a single 4x4 matrix multiplication.
+// - The 'w' component is key:
+//   - w=1: Represents a point in 3D space.
+//   - w=0: Represents a direction in 3D space.
+//   - w is also used as the divisor in perspective projection to create depth.
 typedef struct {
     float x;
     float y;
